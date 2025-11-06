@@ -140,20 +140,37 @@ const getEnvVar = (key: string): string => {
 // Helper function to properly construct API URL
 const constructApiUrl = (baseURL: string): string => {
   console.log(`  🔧 Constructing API URL from base: "${baseURL}"`);
-  
+
+  // Ensure baseURL is a string and not empty
+  if (!baseURL || typeof baseURL !== 'string') {
+    console.error(`  ❌ Invalid baseURL type or empty: ${typeof baseURL}, value: ${baseURL}`);
+    throw new Error(`Base URL must be a non-empty string, got: ${typeof baseURL}`);
+  }
+
+  let cleanBase = baseURL.trim();
+
   // Remove trailing slash if present
-  const cleanBase = baseURL.endsWith('/') ? baseURL.slice(0, -1) : baseURL;
+  if (cleanBase.endsWith('/')) {
+    cleanBase = cleanBase.slice(0, -1);
+  }
+
   console.log(`  🔧 Clean base URL: "${cleanBase}"`);
-  
-  // Validate URL format
+
+  // Validate URL format more thoroughly
   try {
     const urlObj = new URL(cleanBase);
     console.log(`  ✅ Valid URL format - Protocol: ${urlObj.protocol}, Host: ${urlObj.host}`);
+
+    // Ensure it's using HTTP or HTTPS
+    if (!urlObj.protocol.startsWith('http')) {
+      throw new Error(`URL must use HTTP or HTTPS protocol, got: ${urlObj.protocol}`);
+    }
+
   } catch (error) {
     console.error(`  ❌ Invalid URL format:`, error);
-    throw new Error(`Invalid base URL format: ${cleanBase}`);
+    throw new Error(`Invalid base URL format: ${cleanBase}. Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
-  
+
   // Add the endpoint path
   const fullUrl = `${cleanBase}/v1/chat/completions`;
   console.log(`  ✅ Full API URL: "${fullUrl}"`);
