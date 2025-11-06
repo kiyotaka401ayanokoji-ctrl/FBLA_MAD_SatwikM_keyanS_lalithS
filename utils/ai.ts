@@ -171,8 +171,8 @@ const constructApiUrl = (baseURL: string): string => {
     throw new Error(`Invalid base URL format: ${cleanBase}. Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 
-  // Add the endpoint path
-  const fullUrl = `${cleanBase}/v1/chat/completions`;
+  // Add the endpoint path (use /chat/completions instead of /v1/chat/completions)
+  const fullUrl = `${cleanBase}/chat/completions`;
   console.log(`  ✅ Full API URL: "${fullUrl}"`);
   return fullUrl;
 };
