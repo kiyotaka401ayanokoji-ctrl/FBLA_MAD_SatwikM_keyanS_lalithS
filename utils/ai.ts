@@ -54,10 +54,58 @@ const maskToken = (token: string): string => {
 const getEnvVar = (key: string): string => {
   const requestId = requestCounter;
   console.log(`\n🔍 [Request ${requestId}] Getting env var: ${key}`);
-  
+
   let value: string | undefined;
 
-  // Try process.env first
+  // Try expoConfig.extra first (most reliable for Expo)
+  console.log(`  🔄 Checking Constants.expoConfig.extra first...`);
+  const extra = Constants.expoConfig?.extra;
+
+  if (extra && typeof extra === 'object' && !Array.isArray(extra)) {
+    console.log(`  📦 expoConfig.extra exists, type: ${typeof extra}, keys:`, Object.keys(extra));
+
+    if (key in extra) {
+      const extraValue = extra[key];
+      console.log(`  📋 expoConfig.extra.${key}:`,
+        key.includes('API_KEY') ? maskToken(String(extraValue)) : `"${extraValue}"`
+      );
+      console.log(`  📏 Type: ${typeof extraValue}, Length: ${String(extraValue).length}, Trimmed length: ${String(extraValue).trim().length}`);
+
+      // More robust validation for expoConfig.extra values
+      if (extraValue !== null && extraValue !== undefined) {
+        const stringValue = String(extraValue);
+
+        // Check for common corruption patterns
+        const isCorrupted = stringValue.includes('"router"') ||
+                           stringValue.includes('{"origin"') ||
+                           stringValue.includes('[object') ||
+                           stringValue.includes('undefined') ||
+                           stringValue === 'null' ||
+                           stringValue === '';
+
+        // Validation criteria based on key type
+        const isValid = key === 'EXPO_PUBLIC_KIKI_BASE_URL'
+          ? (stringValue.startsWith('http://') || stringValue.startsWith('https://')) && stringValue.length > 15
+          : stringValue.length > 10; // API key should be longer than 10 chars
+
+        if (!isCorrupted && isValid) {
+          console.log(`  ✅ Valid value found in expoConfig.extra`);
+          return stringValue.trim();
+        } else {
+          console.log(`  ❌ Value in expoConfig.extra is corrupted or invalid (corrupted: ${isCorrupted}, valid: ${isValid})`);
+        }
+      } else {
+        console.log(`  ❌ Value in expoConfig.extra is null or undefined`);
+      }
+    } else {
+      console.log(`  ❌ Key "${key}" not found in expoConfig.extra`);
+    }
+  } else {
+    console.log(`  ❌ expoConfig.extra is not available or not an object (type: ${typeof extra})`);
+  }
+
+  // Try process.env as fallback
+  console.log(`  🔄 Checking process.env as fallback...`);
   if (key === 'EXPO_PUBLIC_KIKI_BASE_URL') {
     value = process.env.EXPO_PUBLIC_KIKI_BASE_URL;
     console.log(`  📋 process.env.${key}:`, value ? `"${value}"` : 'undefined');
@@ -76,37 +124,7 @@ const getEnvVar = (key: string): string => {
     console.log(`  ❌ Value in process.env is too short or invalid (length: ${value.trim().length})`);
   }
 
-  // Try expoConfig.extra as fallback
-  console.log(`  🔄 Checking Constants.expoConfig.extra...`);
-  const extra = Constants.expoConfig?.extra;
-  
-  if (extra && typeof extra === 'object') {
-    console.log(`  📦 expoConfig.extra exists, keys:`, Object.keys(extra));
-    
-    if (key in extra) {
-      const extraValue = extra[key];
-      console.log(`  📋 expoConfig.extra.${key}:`, 
-        key.includes('API_KEY') ? maskToken(String(extraValue)) : `"${extraValue}"`
-      );
-      console.log(`  📏 Length: ${String(extraValue).length}, Trimmed length: ${String(extraValue).trim().length}`);
-      
-      if (typeof extraValue === 'string' && 
-          extraValue.trim().length > 10 &&
-          !extraValue.includes('"router"') &&
-          !extraValue.includes('{"origin"')) {
-        console.log(`  ✅ Valid value found in expoConfig.extra`);
-        return extraValue.trim();
-      } else {
-        console.log(`  ❌ Value in expoConfig.extra is too short or invalid (length: ${String(extraValue).trim().length})`);
-      }
-    } else {
-      console.log(`  ❌ Key "${key}" not found in expoConfig.extra`);
-    }
-  } else {
-    console.log(`  ❌ expoConfig.extra is not available`);
-  }
-
-  // Use hardcoded fallback
+  // Use hardcoded fallback as last resort
   console.log(`  🔄 Using hardcoded fallback value`);
   if (key === 'EXPO_PUBLIC_KIKI_BASE_URL') {
     console.log(`  ✅ Fallback base URL: ${FALLBACK_BASE_URL}`);
