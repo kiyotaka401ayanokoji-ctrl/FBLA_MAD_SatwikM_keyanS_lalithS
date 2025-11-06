@@ -359,27 +359,38 @@ export const generateAIResponse = async (
   console.log(`${'='.repeat(80)}`);
   
   try {
+    console.log(`  🎯 Starting AI response generation...`);
+
     // Get environment variables with fallbacks
+    console.log(`  🔧 Loading environment variables...`);
     const baseURL = getEnvVar('EXPO_PUBLIC_KIKI_BASE_URL');
     const apiKey = getEnvVar('EXPO_PUBLIC_KIKI_API_KEY');
 
     // Final validation
+    console.log(`  🔍 Performing final validation...`);
     if (!baseURL || baseURL.trim() === '') {
       console.error(`  ❌ Base URL is empty after all fallback attempts`);
-      return lastSuccessfulResponse || 
+      return lastSuccessfulResponse ||
         "I'm unable to connect to the AI service. Configuration error. Please contact support.";
     }
 
     if (!apiKey || apiKey.trim() === '') {
       console.error(`  ❌ API Key is empty after all fallback attempts`);
-      return lastSuccessfulResponse || 
+      return lastSuccessfulResponse ||
         "I'm unable to connect to the AI service. Authentication error. Please contact support.";
     }
 
+    console.log(`  ✅ Environment variables loaded successfully`);
+    console.log(`    - Base URL: ${baseURL}`);
+    console.log(`    - API Key: ${maskToken(apiKey)}`);
+
     // Construct API URL
+    console.log(`  🔗 Constructing API endpoint...`);
     const apiUrl = constructApiUrl(baseURL);
+    console.log(`  ✅ API URL constructed: ${apiUrl}`);
 
     // Create messages array
+    console.log(`  💬 Creating message array...`);
     const messages = [
       {
         role: 'system',
@@ -388,8 +399,10 @@ export const generateAIResponse = async (
       ...chatHistory,
       { role: 'user', content: userMessage }
     ];
+    console.log(`  ✅ Message array created with ${messages.length} messages`);
 
     // Make API request with retry logic
+    console.log(`  📡 Making API request...`);
     const aiResponse = await makeApiRequest(apiUrl, apiKey, messages, requestId);
 
     // Simulate streaming if callback provided
@@ -401,32 +414,42 @@ export const generateAIResponse = async (
 
     console.log(`\n✅ [Request ${requestId}] Request completed successfully`);
     console.log(`${'='.repeat(80)}\n`);
-    
+
     return aiResponse;
-    
+
   } catch (error) {
     console.error(`\n❌ [Request ${requestId}] Final error:`, error);
+    console.error(`  📊 Error details:`, {
+      name: error instanceof Error ? error.name : 'Unknown',
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined
+    });
     console.log(`${'='.repeat(80)}\n`);
-    
+
     // Return user-friendly message with cached response if available
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    
+
     if (lastSuccessfulResponse) {
       console.log(`  💾 Returning last successful response as fallback`);
       return lastSuccessfulResponse;
     }
-    
-    // Return specific error message
-    if (errorMessage.includes('404')) {
+
+    // Return specific error message based on error type
+    if (errorMessage.includes('404') || errorMessage.includes('endpoint')) {
       return "I'm having trouble connecting to the AI service. The endpoint may be incorrect. Please try again later.";
-    } else if (errorMessage.includes('Authentication')) {
+    } else if (errorMessage.includes('Authentication') || errorMessage.includes('401') || errorMessage.includes('403')) {
       return "I'm having trouble authenticating with the AI service. Please contact support.";
-    } else if (errorMessage.includes('timeout')) {
+    } else if (errorMessage.includes('timeout') || errorMessage.includes('AbortError')) {
       return "The request took too long. Please check your internet connection and try again.";
-    } else if (errorMessage.includes('Rate limit')) {
+    } else if (errorMessage.includes('Rate limit') || errorMessage.includes('429')) {
       return "Too many requests. Please wait a moment and try again.";
+    } else if (errorMessage.includes('network') || errorMessage.includes('fetch')) {
+      return "Network connection issue. Please check your internet and try again.";
+    } else if (errorMessage.includes('Invalid base URL')) {
+      return "Service configuration error. The AI service URL is invalid. Please contact support.";
     }
-    
+
+    console.log(`  🔄 Returning generic error message`);
     return "I'm having trouble connecting right now. Please try again in a moment.";
   }
 };
