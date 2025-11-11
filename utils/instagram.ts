@@ -238,7 +238,7 @@ function createPostsFromProfile(username: string): SocialPost[] {
 
 // Fetch posts for FBLA National Instagram
 export async function fetchNationalPosts(): Promise<SocialPost[]> {
-  return fetchInstagramPosts('fbla_pbl');
+  return fetchInstagramPosts('fbla_national');
 }
 
 // Fetch posts for FBLA NCHS Instagram
