@@ -593,4 +593,83 @@ const styles = StyleSheet.create({
     ...TYPOGRAPHY.bodySmall,
     fontWeight: '500',
   },
+  // Skeleton loading styles
+  skeletonCard: {
+    borderRadius: 18,
+    marginHorizontal: SPACING.lg,
+    marginBottom: SPACING.md,
+    overflow: 'hidden',
+  },
+  skeletonCardInner: {
+    padding: SPACING.md,
+    borderRadius: 18,
+  },
+  skeletonHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: SPACING.sm,
+  },
+  skeletonAvatar: {
+    width: 44,
+    height: 44,
+    borderRadius: BORDER_RADIUS.full,
+    marginRight: SPACING.sm,
+  },
+  skeletonHeaderText: {
+    flex: 1,
+  },
+  skeletonTitle: {
+    width: '40%',
+    height: 16,
+    borderRadius: BORDER_RADIUS.sm,
+    marginBottom: 6,
+  },
+  skeletonSubtitle: {
+    width: '60%',
+    height: 12,
+    borderRadius: BORDER_RADIUS.sm,
+  },
+  skeletonContent: {
+    marginBottom: SPACING.md,
+  },
+  skeletonLine: {
+    width: '100%',
+    height: 14,
+    borderRadius: BORDER_RADIUS.sm,
+    marginBottom: 6,
+  },
+  skeletonLineShort: {
+    width: '70%',
+    height: 14,
+    borderRadius: BORDER_RADIUS.sm,
+  },
+  skeletonMedia: {
+    width: '100%',
+    height: 200,
+    borderRadius: BORDER_RADIUS.md,
+    marginBottom: SPACING.md,
+  },
+  skeletonFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingTop: SPACING.sm,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(0,0,0,0.1)',
+  },
+  skeletonAction: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: SPACING.lg,
+  },
+  skeletonIcon: {
+    width: 18,
+    height: 18,
+    borderRadius: BORDER_RADIUS.sm,
+    marginRight: SPACING.xs,
+  },
+  skeletonText: {
+    width: 20,
+    height: 12,
+    borderRadius: BORDER_RADIUS.sm,
+  },
 });
