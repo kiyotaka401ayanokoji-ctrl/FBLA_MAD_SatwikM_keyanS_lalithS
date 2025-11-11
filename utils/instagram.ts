@@ -14,14 +14,37 @@ function getRelativeTime(timestamp: number): string {
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
-// Fetch Instagram posts using Instagram's embed API
+// Fetch Instagram posts using RSS via nitter.net (more reliable)
 async function fetchInstagramPosts(username: string): Promise<SocialPost[]> {
   try {
     console.log(`🔍 Fetching Instagram posts for @${username}...`);
-    
-    // Use Instagram's oEmbed API to get post data
-    // This is a public API that doesn't require authentication
-    const response = await fetch(
+
+    // First try RSS approach for live content
+    const rssUrl = `https://nitter.net/${username}/rss`;
+    console.log(`📡 Trying RSS feed: ${rssUrl}`);
+
+    const rssResponse = await fetch(rssUrl, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/rss+xml, application/xml, text/xml',
+        'User-Agent': 'FBLA-Connect-App/1.0',
+      },
+    });
+
+    if (rssResponse.ok) {
+      const rssText = await rssResponse.text();
+      console.log('✅ Got RSS data, parsing...');
+
+      const posts = parseRSSFeed(rssText, username);
+      if (posts.length > 0) {
+        console.log(`✅ Successfully parsed ${posts.length} posts from RSS`);
+        return posts;
+      }
+    }
+
+    // If RSS fails, try Instagram's oEmbed API as fallback
+    console.log('⚠️ RSS failed, trying Instagram oEmbed API...');
+    const embedResponse = await fetch(
       `https://graph.instagram.com/oembed?url=https://www.instagram.com/${username}/&access_token=public`,
       {
         method: 'GET',
@@ -31,22 +54,83 @@ async function fetchInstagramPosts(username: string): Promise<SocialPost[]> {
       }
     );
 
-    if (response.ok) {
-      const data = await response.json();
-      console.log('✅ Got Instagram data:', data);
-      
-      // Create posts from the data
-      const posts = createPostsFromProfile(username);
-      return posts;
+    if (embedResponse.ok) {
+      const data = await embedResponse.json();
+      console.log('✅ Got Instagram embed data:', data);
     }
 
-    // If that fails, return curated posts
-    console.log('⚠️ Using curated Instagram posts');
+    // Final fallback to curated posts
+    console.log('⚠️ Using curated Instagram posts as fallback');
     return createPostsFromProfile(username);
   } catch (error) {
     console.error(`❌ Error fetching Instagram posts:`, error);
-    // Return curated posts as fallback
+    // Return curated posts as final fallback
     return createPostsFromProfile(username);
+  }
+}
+
+// Parse RSS feed and convert to SocialPost format
+function parseRSSFeed(rssText: string, username: string): SocialPost[] {
+  try {
+    // Simple RSS parsing - look for item tags
+    const itemMatches = rssText.match(/<item[^>]*>[\s\S]*?<\/item>/g);
+    if (!itemMatches) return [];
+
+    const posts: SocialPost[] = [];
+    const isNational = username === 'fbla_national';
+    const displayName = isNational ? 'FBLA National' : 'FBLA NCHS';
+    const handle = `@${username}`;
+
+    for (let i = 0; i < Math.min(itemMatches.length, 10); i++) {
+      const item = itemMatches[i];
+
+      // Extract title
+      const titleMatch = item.match(/<title[^>]*><!\[CDATA\[(.*?)\]\]><\/title>/) ||
+                        item.match(/<title[^>]*>(.*?)<\/title>/);
+      const title = titleMatch ? titleMatch[1] : '';
+
+      // Extract description
+      const descMatch = item.match(/<description[^>]*><!\[CDATA\[(.*?)\]\]><\/description>/) ||
+                       item.match(/<description[^>]*>(.*?)<\/description>/);
+      const description = descMatch ? descMatch[1] : '';
+
+      // Extract link
+      const linkMatch = item.match(/<link[^>]*>(.*?)<\/link>/);
+      const link = linkMatch ? linkMatch[1] : '';
+
+      // Extract pubDate
+      const dateMatch = item.match(/<pubDate[^>]*>(.*?)<\/pubDate>/);
+      const pubDate = dateMatch ? dateMatch[1] : '';
+
+      // Extract media thumbnail
+      const mediaMatch = item.match(/<media:thumbnail[^>]*url="([^"]*)"/) ||
+                        item.match(/<enclosure[^>]*url="([^"]*)"[^>]*type="image\/([^"]*)"/);
+      const imageUrl = mediaMatch ? mediaMatch[1] : '';
+
+      if (title || description) {
+        const content = (title + ' ' + description).trim();
+        const postId = link.split('/').pop() || `${username}_${i}`;
+
+        posts.push({
+          id: postId,
+          username: displayName,
+          handle,
+          content: content.length > 280 ? content.substring(0, 277) + '...' : content,
+          timestamp: pubDate ? getRelativeTime(new Date(pubDate).getTime() / 1000) : `${i}h ago`,
+          likes: Math.floor(Math.random() * 500) + 50,
+          retweets: 0,
+          replies: Math.floor(Math.random() * 50) + 5,
+          isLiked: false,
+          isRetweeted: false,
+          images: imageUrl ? [imageUrl] : undefined,
+        });
+      }
+    }
+
+    return posts;
+  } catch (error) {
+    console.error('Error parsing RSS feed:', error);
+    return [];
   }
 }
 
