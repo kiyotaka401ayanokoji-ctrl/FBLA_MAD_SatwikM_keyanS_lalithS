@@ -152,18 +152,25 @@ export default function SocialPostCard({ post, index, onLike, onRetweet }: Socia
 
             {/* Video Thumbnail */}
             {post.videoThumbnail && (
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.videoContainer}
                 onPress={handleVideoPlay}
                 activeOpacity={0.8}
               >
-                <View style={[styles.videoOverlay, { backgroundColor: 'rgba(0, 0, 0, 0.4)' }]}>
-                  <View style={[styles.playButton, { backgroundColor: colors.primary }]}>
+                <Image
+                  source={{ uri: post.videoThumbnail }}
+                  style={styles.videoThumbnail}
+                  resizeMode="cover"
+                />
+                <View style={[styles.videoOverlay, { backgroundColor: 'rgba(0, 0, 0, 0.3)' }]}>
+                  <View style={[styles.playButton, { backgroundColor: colors.primary + 'EE' }]}>
                     <MaterialIcons name="play-arrow" size={32} color="#FFFFFF" />
                   </View>
-                </View>
-                <View style={[styles.videoPlaceholder, { backgroundColor: colors.surface }]}>
-                  <MaterialIcons name="videocam" size={48} color={colors.textLight} />
+                  <View style={[styles.videoDuration, { backgroundColor: 'rgba(0, 0, 0, 0.7)' }]}>
+                    <Text style={styles.videoDurationText}>
+                      {post.videoDuration || '0:00'}
+                    </Text>
+                  </View>
                 </View>
               </TouchableOpacity>
             )}
