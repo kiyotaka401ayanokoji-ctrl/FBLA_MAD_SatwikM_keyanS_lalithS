@@ -264,6 +264,57 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     marginBottom: SPACING.md,
   },
+  mediaContainer: {
+    marginBottom: SPACING.md,
+  },
+  singleImageContainer: {
+    width: '100%',
+    height: 300,
+    borderRadius: BORDER_RADIUS.md,
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  singleImage: {
+    width: '100%',
+    height: '100%',
+  },
+  imageScrollContainer: {
+    maxHeight: 250,
+  },
+  imageScrollContent: {
+    gap: SPACING.sm,
+  },
+  multiImageContainer: {
+    width: 200,
+    height: 200,
+    borderRadius: BORDER_RADIUS.md,
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  multiImage: {
+    width: '100%',
+    height: '100%',
+  },
+  imageLoadingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 1,
+  },
+  imageErrorOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 1,
+  },
   videoContainer: {
     width: '100%',
     height: 200,
