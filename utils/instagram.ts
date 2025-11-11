@@ -16,55 +16,86 @@ function getRelativeTime(timestamp: number): string {
 
 // Fetch Instagram posts using RSS via nitter.net (more reliable)
 async function fetchInstagramPosts(username: string): Promise<SocialPost[]> {
-  try {
-    console.log(`🔍 Fetching Instagram posts for @${username}...`);
+  console.log(`🚀 Starting Instagram fetch for @${username} at ${new Date().toISOString()}`);
 
+  try {
     // First try RSS approach for live content
     const rssUrl = `https://nitter.net/${username}/rss`;
-    console.log(`📡 Trying RSS feed: ${rssUrl}`);
+    console.log(`📡 Attempting RSS feed: ${rssUrl}`);
 
+    const rssStartTime = Date.now();
     const rssResponse = await fetch(rssUrl, {
       method: 'GET',
       headers: {
         'Accept': 'application/rss+xml, application/xml, text/xml',
         'User-Agent': 'FBLA-Connect-App/1.0',
       },
+      signal: AbortSignal.timeout(10000), // 10 second timeout
     });
+    const rssDuration = Date.now() - rssStartTime;
+
+    console.log(`📊 RSS response status: ${rssResponse.status} (${rssDuration}ms)`);
 
     if (rssResponse.ok) {
       const rssText = await rssResponse.text();
-      console.log('✅ Got RSS data, parsing...');
+      console.log(`📄 RSS content length: ${rssText.length} characters`);
 
       const posts = parseRSSFeed(rssText, username);
       if (posts.length > 0) {
-        console.log(`✅ Successfully parsed ${posts.length} posts from RSS`);
+        console.log(`✅ SUCCESS: Parsed ${posts.length} posts from RSS feed for @${username}`);
+        console.log(`📝 First post preview: ${posts[0].content.substring(0, 100)}...`);
         return posts;
+      } else {
+        console.log('⚠️ RSS returned content but no valid posts found');
       }
+    } else {
+      console.log(`❌ RSS failed with status: ${rssResponse.status} ${rssResponse.statusText}`);
     }
 
     // If RSS fails, try Instagram's oEmbed API as fallback
-    console.log('⚠️ RSS failed, trying Instagram oEmbed API...');
-    const embedResponse = await fetch(
-      `https://graph.instagram.com/oembed?url=https://www.instagram.com/${username}/&access_token=public`,
-      {
-        method: 'GET',
-        headers: {
-          'Accept': 'application/json',
-        },
-      }
-    );
+    console.log(`🔄 RSS failed, trying Instagram oEmbed API for @${username}...`);
 
-    if (embedResponse.ok) {
-      const data = await embedResponse.json();
-      console.log('✅ Got Instagram embed data:', data);
+    try {
+      const embedStartTime = Date.now();
+      const embedResponse = await fetch(
+        `https://graph.instagram.com/oembed?url=https://www.instagram.com/${username}/&access_token=public`,
+        {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+          },
+          signal: AbortSignal.timeout(8000), // 8 second timeout
+        }
+      );
+      const embedDuration = Date.now() - embedStartTime;
+
+      console.log(`📊 Instagram API response status: ${embedResponse.status} (${embedDuration}ms)`);
+
+      if (embedResponse.ok) {
+        const data = await embedResponse.json();
+        console.log('✅ Instagram embed API successful:', data);
+      } else {
+        console.log(`❌ Instagram API failed: ${embedResponse.status}`);
+      }
+    } catch (embedError) {
+      console.error('❌ Instagram API error:', embedError instanceof Error ? embedError.message : 'Unknown error');
     }
 
     // Final fallback to curated posts
-    console.log('⚠️ Using curated Instagram posts as fallback');
-    return createPostsFromProfile(username);
+    console.log(`📦 Using curated posts as final fallback for @${username}`);
+    const curatedPosts = createPostsFromProfile(username);
+    console.log(`📚 Returning ${curatedPosts.length} curated posts for @${username}`);
+    return curatedPosts;
+
   } catch (error) {
-    console.error(`❌ Error fetching Instagram posts:`, error);
+    console.error(`💥 CRITICAL ERROR fetching Instagram posts for @${username}:`, {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      timestamp: new Date().toISOString(),
+    });
+
     // Return curated posts as final fallback
+    console.log(`🆘 EMERGENCY FALLBACK: Returning curated posts for @${username}`);
     return createPostsFromProfile(username);
   }
 }
