@@ -14,75 +14,40 @@ function getRelativeTime(timestamp: number): string {
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
-// Fetch Instagram posts using RSS via nitter.net (more reliable)
+// Fetch Instagram posts using multiple approaches
 async function fetchInstagramPosts(username: string): Promise<SocialPost[]> {
-  console.log(`🚀 Starting Instagram fetch for @${username} at ${new Date().toISOString()}`);
+  console.log(`🚀 Starting REAL Instagram fetch for @${username} at ${new Date().toISOString()}`);
 
   try {
-    // First try RSS approach for live content
-    const rssUrl = `https://nitter.net/${username}/rss`;
-    console.log(`📡 Attempting RSS feed: ${rssUrl}`);
+    // Approach 1: Try scraping Instagram profile directly (most likely to work)
+    console.log(`📱 Attempting direct Instagram profile scraping for @${username}...`);
 
-    const rssStartTime = Date.now();
-    const rssResponse = await fetch(rssUrl, {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/rss+xml, application/xml, text/xml',
-        'User-Agent': 'FBLA-Connect-App/1.0',
-      },
-      signal: AbortSignal.timeout(10000), // 10 second timeout
-    });
-    const rssDuration = Date.now() - rssStartTime;
-
-    console.log(`📊 RSS response status: ${rssResponse.status} (${rssDuration}ms)`);
-
-    if (rssResponse.ok) {
-      const rssText = await rssResponse.text();
-      console.log(`📄 RSS content length: ${rssText.length} characters`);
-
-      const posts = parseRSSFeed(rssText, username);
-      if (posts.length > 0) {
-        console.log(`✅ SUCCESS: Parsed ${posts.length} posts from RSS feed for @${username}`);
-        console.log(`📝 First post preview: ${posts[0].content.substring(0, 100)}...`);
-        return posts;
-      } else {
-        console.log('⚠️ RSS returned content but no valid posts found');
-      }
-    } else {
-      console.log(`❌ RSS failed with status: ${rssResponse.status} ${rssResponse.statusText}`);
+    const scrapedPosts = await scrapeInstagramProfile(username);
+    if (scrapedPosts.length > 0) {
+      console.log(`✅ SUCCESS: Scraped ${scrapedPosts.length} REAL Instagram posts for @${username}`);
+      return scrapedPosts;
     }
 
-    // If RSS fails, try Instagram's oEmbed API as fallback
-    console.log(`🔄 RSS failed, trying Instagram oEmbed API for @${username}...`);
+    // Approach 2: Try Instagram Basic Display API (if available)
+    console.log(`🔍 Trying Instagram Basic Display API for @${username}...`);
 
-    try {
-      const embedStartTime = Date.now();
-      const embedResponse = await fetch(
-        `https://graph.instagram.com/oembed?url=https://www.instagram.com/${username}/&access_token=public`,
-        {
-          method: 'GET',
-          headers: {
-            'Accept': 'application/json',
-          },
-          signal: AbortSignal.timeout(8000), // 8 second timeout
-        }
-      );
-      const embedDuration = Date.now() - embedStartTime;
-
-      console.log(`📊 Instagram API response status: ${embedResponse.status} (${embedDuration}ms)`);
-
-      if (embedResponse.ok) {
-        const data = await embedResponse.json();
-        console.log('✅ Instagram embed API successful:', data);
-      } else {
-        console.log(`❌ Instagram API failed: ${embedResponse.status}`);
-      }
-    } catch (embedError) {
-      console.error('❌ Instagram API error:', embedError instanceof Error ? embedError.message : 'Unknown error');
+    const apiPosts = await fetchInstagramBasicDisplayAPI(username);
+    if (apiPosts.length > 0) {
+      console.log(`✅ SUCCESS: Got ${apiPosts.length} posts from Instagram API for @${username}`);
+      return apiPosts;
     }
 
-    // Final fallback to curated posts
-    console.log(`📦 Using curated posts as final fallback for @${username}`);
+    // Approach 3: Try third-party Instagram services
+    console.log(`🌐 Trying third-party Instagram services for @${username}...`);
+
+    const servicePosts = await fetchThirdPartyInstagram(username);
+    if (servicePosts.length > 0) {
+      console.log(`✅ SUCCESS: Got ${servicePosts.length} posts from third-party service for @${username}`);
+      return servicePosts;
+    }
+
+    // If all approaches fail, return curated posts as LAST resort
+    console.log(`⚠️ ALL APPROACHES FAILED - Using curated posts as LAST resort for @${username}`);
     const curatedPosts = createPostsFromProfile(username);
     console.log(`📚 Returning ${curatedPosts.length} curated posts for @${username}`);
     return curatedPosts;
@@ -98,6 +63,221 @@ async function fetchInstagramPosts(username: string): Promise<SocialPost[]> {
     console.log(`🆘 EMERGENCY FALLBACK: Returning curated posts for @${username}`);
     return createPostsFromProfile(username);
   }
+}
+
+// Approach 1: Direct Instagram profile scraping
+async function scrapeInstagramProfile(username: string): Promise<SocialPost[]> {
+  try {
+    console.log(`🔍 Scraping Instagram profile: https://www.instagram.com/${username}/`);
+
+    const startTime = Date.now();
+    const response = await fetch(`https://www.instagram.com/${username}/`, {
+      method: 'GET',
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.5',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'DNT': '1',
+        'Connection': 'keep-alive',
+        'Upgrade-Insecure-Requests': '1',
+      },
+      signal: AbortSignal.timeout(15000), // 15 second timeout
+    });
+
+    const duration = Date.now() - startTime;
+    console.log(`📊 Profile scrape response: ${response.status} (${duration}ms)`);
+
+    if (!response.ok) {
+      console.log(`❌ Profile scraping failed: ${response.status} ${response.statusText}`);
+      return [];
+    }
+
+    const html = await response.text();
+    console.log(`📄 Profile HTML length: ${html.length} characters`);
+
+    // Extract shared data from Instagram's embedded JSON
+    const sharedDataMatch = html.match(/window\._sharedData = ({.+?});/);
+    if (sharedDataMatch) {
+      try {
+        const sharedData = JSON.parse(sharedDataMatch[1]);
+        console.log('✅ Found Instagram shared data');
+
+        return extractPostsFromSharedData(sharedData, username);
+      } catch (parseError) {
+        console.error('❌ Error parsing shared data:', parseError);
+      }
+    }
+
+    // Alternative: Try additional data extraction methods
+    const additionalDataMatch = html.match(/window\.__additionalDataLoaded\([^,]+,({.+?})\);/);
+    if (additionalDataMatch) {
+      try {
+        const additionalData = JSON.parse(additionalDataMatch[1]);
+        console.log('✅ Found Instagram additional data');
+
+        return extractPostsFromAdditionalData(additionalData, username);
+      } catch (parseError) {
+        console.error('❌ Error parsing additional data:', parseError);
+      }
+    }
+
+    console.log('❌ No Instagram data found in HTML');
+    return [];
+
+  } catch (error) {
+    console.error('❌ Error scraping Instagram profile:', error instanceof Error ? error.message : 'Unknown error');
+    return [];
+  }
+}
+
+// Extract posts from Instagram shared data
+function extractPostsFromSharedData(sharedData: any, username: string): SocialPost[] {
+  try {
+    const posts: SocialPost[] = [];
+    const isNational = username === 'fbla_national';
+    const displayName = isNational ? 'FBLA National' : 'FBLA NCHS';
+    const handle = `@${username}`;
+
+    // Navigate through Instagram's data structure to find posts
+    const userData = sharedData?.entry_data?.ProfilePage?.[0]?.graphql?.user;
+
+    if (!userData || !userData.edge_owner_to_timeline_media) {
+      console.log('❌ No user timeline data found');
+      return [];
+    }
+
+    const edges = userData.edge_owner_to_timeline_media.edges || [];
+    console.log(`📱 Found ${edges.length} posts in timeline`);
+
+    edges.slice(0, 12).forEach((edge: any, index: number) => {
+      const node = edge.node;
+      if (!node) return;
+
+      try {
+        const caption = node.edge_media_to_caption?.edges?.[0]?.node?.text || '';
+        const timestamp = node.taken_at_timestamp;
+        const likes = node.edge_liked_by?.count || 0;
+        const comments = node.edge_media_to_comment?.count || 0;
+        const isVideo = node.is_video;
+        const displayUrl = node.display_url;
+        const videoUrl = node.video_url;
+        const shortcode = node.shortcode;
+
+        if (caption && displayUrl) {
+          const post: SocialPost = {
+            id: shortcode || `${username}_${index}`,
+            username: displayName,
+            handle,
+            content: caption.length > 280 ? caption.substring(0, 277) + '...' : caption,
+            timestamp: timestamp ? getRelativeTime(timestamp) : `${index}h ago`,
+            likes: likes,
+            retweets: 0, // Instagram doesn't have retweets
+            replies: comments,
+            isLiked: false,
+            isRetweeted: false,
+            images: displayUrl ? [displayUrl] : undefined,
+            videoThumbnail: isVideo && displayUrl ? displayUrl : undefined,
+            videoUrl: isVideo ? videoUrl : undefined,
+            videoDuration: node.video_duration ? formatVideoDuration(node.video_duration) : undefined,
+          };
+
+          posts.push(post);
+          console.log(`✅ Extracted post ${index + 1}: ${caption.substring(0, 50)}...`);
+        }
+      } catch (postError) {
+        console.error(`❌ Error processing post ${index}:`, postError);
+      }
+    });
+
+    console.log(`🎉 Successfully extracted ${posts.length} REAL Instagram posts`);
+    return posts;
+
+  } catch (error) {
+    console.error('❌ Error extracting posts from shared data:', error);
+    return [];
+  }
+}
+
+// Extract posts from additional data (alternative method)
+function extractPostsFromAdditionalData(additionalData: any, username: string): SocialPost[] {
+  try {
+    const posts: SocialPost[] = [];
+    const isNational = username === 'fbla_national';
+    const displayName = isNational ? 'FBLA National' : 'FBLA NCHS';
+    const handle = `@${username}`;
+
+    const userData = additionalData?.data?.user;
+    if (!userData || !userData.edge_owner_to_timeline_media) {
+      console.log('❌ No user timeline data in additional data');
+      return [];
+    }
+
+    const edges = userData.edge_owner_to_timeline_media.edges || [];
+    console.log(`📱 Found ${edges.length} posts in additional data`);
+
+    edges.slice(0, 12).forEach((edge: any, index: number) => {
+      const node = edge.node;
+      if (!node) return;
+
+      try {
+        const caption = node.edge_media_to_caption?.edges?.[0]?.node?.text || '';
+        const timestamp = node.taken_at_timestamp;
+        const likes = node.edge_liked_by?.count || 0;
+        const comments = node.edge_media_to_comment?.count || 0;
+        const displayUrl = node.display_url;
+        const shortcode = node.shortcode;
+
+        if (caption && displayUrl) {
+          const post: SocialPost = {
+            id: shortcode || `${username}_${index}`,
+            username: displayName,
+            handle,
+            content: caption.length > 280 ? caption.substring(0, 277) + '...' : caption,
+            timestamp: timestamp ? getRelativeTime(timestamp) : `${index}h ago`,
+            likes: likes,
+            retweets: 0,
+            replies: comments,
+            isLiked: false,
+            isRetweeted: false,
+            images: displayUrl ? [displayUrl] : undefined,
+          };
+
+          posts.push(post);
+        }
+      } catch (postError) {
+        console.error(`❌ Error processing additional data post ${index}:`, postError);
+      }
+    });
+
+    console.log(`🎉 Successfully extracted ${posts.length} posts from additional data`);
+    return posts;
+
+  } catch (error) {
+    console.error('❌ Error extracting posts from additional data:', error);
+    return [];
+  }
+}
+
+// Approach 2: Instagram Basic Display API (placeholder for future implementation)
+async function fetchInstagramBasicDisplayAPI(username: string): Promise<SocialPost[]> {
+  console.log(`🔧 Instagram Basic Display API not configured for @${username}`);
+  console.log(`💡 To implement: Get Instagram Basic Display API access token and configure in app`);
+  return [];
+}
+
+// Approach 3: Third-party Instagram services (placeholder for future implementation)
+async function fetchThirdPartyInstagram(username: string): Promise<SocialPost[]> {
+  console.log(`🔧 Third-party Instagram services not configured for @${username}`);
+  console.log(`💡 Options: Instafeed.js, SnapWidget, or similar services`);
+  return [];
+}
+
+// Format video duration (seconds to MM:SS)
+function formatVideoDuration(seconds: number): string {
+  const mins = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60);
+  return `${mins}:${secs.toString().padStart(2, '0')}`;
 }
 
 // Parse RSS feed and convert to SocialPost format
