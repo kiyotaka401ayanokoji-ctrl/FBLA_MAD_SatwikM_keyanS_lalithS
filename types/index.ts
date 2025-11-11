@@ -35,6 +35,7 @@ export interface SocialPost {
   images?: string[];
   videoThumbnail?: string;
   videoUrl?: string;
+  videoDuration?: string;
   isLiked?: boolean;
   isRetweeted?: boolean;
 }
