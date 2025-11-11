@@ -17,6 +17,25 @@ interface SocialPostCardProps {
 
 export default function SocialPostCard({ post, index, onLike, onRetweet }: SocialPostCardProps) {
   const { colors, isDarkMode } = useTheme();
+  const [imageLoadErrors, setImageLoadErrors] = useState<Set<number>>(new Set());
+  const [imageLoading, setImageLoading] = useState<Set<number>>(new Set());
+
+  const handleImageError = (imageIndex: number) => {
+    setImageLoadErrors(prev => new Set(prev).add(imageIndex));
+    setImageLoading(prev => {
+      const newSet = new Set(prev);
+      newSet.delete(imageIndex);
+      return newSet;
+    });
+  };
+
+  const handleImageLoad = (imageIndex: number) => {
+    setImageLoading(prev => {
+      const newSet = new Set(prev);
+      newSet.delete(imageIndex);
+      return newSet;
+    });
+  };
 
   const handleOpenPost = async () => {
     // For Instagram posts, construct the Instagram URL
