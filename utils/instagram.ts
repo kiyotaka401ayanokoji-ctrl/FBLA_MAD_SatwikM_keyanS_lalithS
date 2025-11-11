@@ -53,7 +53,7 @@ async function fetchInstagramPosts(username: string): Promise<SocialPost[]> {
 // Create posts based on the actual Instagram profiles
 // These are real posts from the accounts, manually curated
 function createPostsFromProfile(username: string): SocialPost[] {
-  const isNational = username === 'fbla_pbl';
+  const isNational = username === 'fbla_national';
   const displayName = isNational ? 'FBLA National' : 'FBLA NCHS';
   const handle = `@${username}`;
 
