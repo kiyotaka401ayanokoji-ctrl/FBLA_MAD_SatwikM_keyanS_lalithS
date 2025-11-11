@@ -267,7 +267,7 @@ export default function AnnouncementsScreen() {
                 styles.tabText,
                 { color: activeTab === 'chapter' ? '#FFFFFF' : colors.textSecondary }
               ]}>
-                Chapter
+                Chapter Updates
               </Text>
             </TouchableOpacity>
           </View>
