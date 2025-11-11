@@ -385,12 +385,14 @@ export default function AnnouncementsScreen() {
 
         {/* Posts Feed */}
         {loading ? (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={colors.primary} />
-            <Text style={[styles.loadingText, { color: colors.textLight }]}>
-              Loading posts...
-            </Text>
-          </View>
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.feedContainer}
+          >
+            {[1, 2, 3].map((index) => (
+              <SkeletonCard key={index} index={index} />
+            ))}
+          </ScrollView>
         ) : (
           <ScrollView
             showsVerticalScrollIndicator={false}
