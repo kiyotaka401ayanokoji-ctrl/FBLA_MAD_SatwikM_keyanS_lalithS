@@ -521,4 +521,18 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontWeight: '600',
   },
+  tipsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: SPACING.md,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    borderRadius: BORDER_RADIUS.md,
+    alignSelf: 'center',
+    gap: SPACING.xs,
+  },
+  tipsText: {
+    ...TYPOGRAPHY.bodySmall,
+    fontWeight: '500',
+  },
 });
