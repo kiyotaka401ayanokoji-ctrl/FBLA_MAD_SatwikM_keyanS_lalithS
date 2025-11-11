@@ -51,7 +51,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.md,
-    backgroundColor: COLORS.surface,
   },
   leftSection: {
     width: 40,
@@ -62,7 +61,6 @@ const styles = StyleSheet.create({
   },
   title: {
     ...TYPOGRAPHY.h3,
-    color: COLORS.text,
     flex: 1,
     textAlign: 'center',
   },
