@@ -94,6 +94,62 @@ export default function SocialPostCard({ post, index, onLike, onRetweet }: Socia
               {post.content}
             </Text>
 
+            {/* Images */}
+            {post.images && post.images.length > 0 && (
+              <View style={styles.mediaContainer}>
+                {post.images.length === 1 ? (
+                  <View style={styles.singleImageContainer}>
+                    <Image
+                      source={{ uri: post.images[0] }}
+                      style={[styles.singleImage, { backgroundColor: colors.surface }]}
+                      resizeMode="cover"
+                      onError={() => handleImageError(0)}
+                      onLoad={() => handleImageLoad(0)}
+                    />
+                    {imageLoading.has(0) && (
+                      <View style={[styles.imageLoadingOverlay, { backgroundColor: colors.surface + '99' }]}>
+                        <MaterialIcons name="image" size={32} color={colors.textLight} />
+                      </View>
+                    )}
+                    {imageLoadErrors.has(0) && (
+                      <View style={[styles.imageErrorOverlay, { backgroundColor: colors.surface + '99' }]}>
+                        <MaterialIcons name="broken-image" size={32} color={colors.error} />
+                      </View>
+                    )}
+                  </View>
+                ) : (
+                  <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    style={styles.imageScrollContainer}
+                    contentContainerStyle={styles.imageScrollContent}
+                  >
+                    {post.images.map((imageUrl, imageIndex) => (
+                      <View key={imageIndex} style={styles.multiImageContainer}>
+                        <Image
+                          source={{ uri: imageUrl }}
+                          style={[styles.multiImage, { backgroundColor: colors.surface }]}
+                          resizeMode="cover"
+                          onError={() => handleImageError(imageIndex)}
+                          onLoad={() => handleImageLoad(imageIndex)}
+                        />
+                        {imageLoading.has(imageIndex) && (
+                          <View style={[styles.imageLoadingOverlay, { backgroundColor: colors.surface + '99' }]}>
+                            <MaterialIcons name="image" size={24} color={colors.textLight} />
+                          </View>
+                        )}
+                        {imageLoadErrors.has(imageIndex) && (
+                          <View style={[styles.imageErrorOverlay, { backgroundColor: colors.surface + '99' }]}>
+                            <MaterialIcons name="broken-image" size={24} color={colors.error} />
+                          </View>
+                        )}
+                      </View>
+                    ))}
+                  </ScrollView>
+                )}
+              </View>
+            )}
+
             {/* Video Thumbnail */}
             {post.videoThumbnail && (
               <TouchableOpacity 
