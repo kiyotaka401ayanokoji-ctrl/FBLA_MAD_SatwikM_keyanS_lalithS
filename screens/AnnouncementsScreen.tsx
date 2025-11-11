@@ -95,39 +95,93 @@ export default function AnnouncementsScreen() {
   };
 
   const fetchAllPosts = async () => {
+    console.log('🚀 Starting fetchAllPosts...');
+    const startTime = Date.now();
+
     try {
       setError(null);
-      
-      const [national, chapter] = await Promise.all([
+      console.log('📡 Fetching National and Chapter posts concurrently...');
+
+      const [national, chapter] = await Promise.allSettled([
         fetchNationalPosts(),
         fetchChapterPosts(),
       ]);
 
+      // Handle results with detailed logging
+      let nationalPosts: SocialPost[] = [];
+      let chapterPosts: SocialPost[] = [];
+      let hasNationalError = false;
+      let hasChapterError = false;
+
+      if (national.status === 'fulfilled') {
+        nationalPosts = national.value;
+        console.log(`✅ National posts loaded: ${nationalPosts.length} posts`);
+      } else {
+        hasNationalError = true;
+        console.error('❌ National posts failed:', national.reason);
+      }
+
+      if (chapter.status === 'fulfilled') {
+        chapterPosts = chapter.value;
+        console.log(`✅ Chapter posts loaded: ${chapterPosts.length} posts`);
+      } else {
+        hasChapterError = true;
+        console.error('❌ Chapter posts failed:', chapter.reason);
+      }
+
       // Always set posts, even if empty
-      setNationalPosts(national);
-      setChapterPosts(chapter);
+      setNationalPosts(nationalPosts);
+      setChapterPosts(chapterPosts);
 
-      // Cache the data
-      if (national.length > 0) {
-        cacheData(CACHE_KEY_NATIONAL, national);
+      // Cache the data if successful
+      if (nationalPosts.length > 0) {
+        await cacheData(CACHE_KEY_NATIONAL, nationalPosts);
+        console.log('💾 National posts cached');
       }
-      if (chapter.length > 0) {
-        cacheData(CACHE_KEY_CHAPTER, chapter);
+      if (chapterPosts.length > 0) {
+        await cacheData(CACHE_KEY_CHAPTER, chapterPosts);
+        console.log('💾 Chapter posts cached');
       }
 
-      // Only show error if both are empty
-      if (national.length === 0 && chapter.length === 0) {
-        setError('Unable to load posts. Please try again later.');
+      const duration = Date.now() - startTime;
+      console.log(`📊 fetchAllPosts completed in ${duration}ms`);
+
+      // Determine error state with specific messages
+      if (nationalPosts.length === 0 && chapterPosts.length === 0) {
+        if (hasNationalError && hasChapterError) {
+          setError('📵 Unable to connect to social feeds. Please check your internet connection.');
+        } else if (hasNationalError) {
+          setError('🏛️ National feed temporarily unavailable. Showing Chapter updates only.');
+        } else if (hasChapterError) {
+          setError('🏫 Chapter feed temporarily unavailable. Showing National updates only.');
+        } else {
+          setError('📭 No posts available at the moment. Please check back later.');
+        }
+      } else {
+        console.log(`🎉 Success: ${nationalPosts.length} National + ${chapterPosts.length} Chapter posts loaded`);
+        if (hasNationalError) {
+          console.log('⚠️ National feed had issues but using cached/curated content');
+        }
+        if (hasChapterError) {
+          console.log('⚠️ Chapter feed had issues but using cached/curated content');
+        }
       }
     } catch (err) {
-      console.error('Error fetching posts:', err);
+      const duration = Date.now() - startTime;
+      console.error(`💥 CRITICAL ERROR in fetchAllPosts (${duration}ms):`, {
+        error: err instanceof Error ? err.message : 'Unknown error',
+        stack: err instanceof Error ? err.stack : undefined,
+        timestamp: new Date().toISOString(),
+      });
+
       // Don't set error if we have cached data
       if (nationalPosts.length === 0 && chapterPosts.length === 0) {
-        setError('Failed to load posts. Please check your connection.');
+        setError('🚨 Something went wrong while loading posts. Please try again.');
       }
     } finally {
       setLoading(false);
       setRefreshing(false);
+      console.log(`🏁 fetchAllPosts finished in ${Date.now() - startTime}ms`);
     }
   };
 
