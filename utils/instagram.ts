@@ -58,7 +58,7 @@ function createPostsFromProfile(username: string): SocialPost[] {
   const handle = `@${username}`;
 
   if (isNational) {
-    // Real posts from @fbla_pbl Instagram
+    // Real posts from @fbla_national Instagram
     return [
       {
         id: 'fbla_n1',
