@@ -349,19 +349,31 @@ export default function AnnouncementsScreen() {
             }
           >
             {error ? (
-              <Animated.View 
+              <Animated.View
                 entering={FadeIn.delay(400)}
                 style={[styles.emptyState, { backgroundColor: colors.surface }]}
               >
-                <MaterialIcons name="error-outline" size={64} color={colors.error} />
+                <MaterialIcons name="wifi-off" size={64} color={colors.error} />
                 <Text style={[styles.emptyTitle, { color: colors.text }]}>
                   {error}
                 </Text>
-                <TouchableOpacity 
+                <Text style={[styles.emptySubtitle, { color: colors.textLight }]}>
+                  Pull down to refresh or try the button below
+                </Text>
+                <TouchableOpacity
                   style={[styles.retryButton, { backgroundColor: colors.primary }]}
                   onPress={handleRefresh}
+                  disabled={refreshing}
                 >
-                  <Text style={styles.retryButtonText}>Retry</Text>
+                  <MaterialIcons
+                    name="refresh"
+                    size={20}
+                    color="#FFFFFF"
+                    style={refreshing ? { marginRight: SPACING.xs } : { marginRight: SPACING.xs }}
+                  />
+                  <Text style={styles.retryButtonText}>
+                    {refreshing ? 'Refreshing...' : 'Retry Now'}
+                  </Text>
                 </TouchableOpacity>
               </Animated.View>
             ) : currentPosts.length > 0 ? (
@@ -375,17 +387,30 @@ export default function AnnouncementsScreen() {
                 />
               ))
             ) : (
-              <Animated.View 
+              <Animated.View
                 entering={FadeIn.delay(400)}
                 style={[styles.emptyState, { backgroundColor: colors.surface }]}
               >
-                <MaterialIcons name="inbox" size={64} color={colors.textLight} />
+                <MaterialIcons
+                  name={activeTab === 'national' ? 'public' : 'school'}
+                  size={64}
+                  color={colors.textLight}
+                />
                 <Text style={[styles.emptyTitle, { color: colors.text }]}>
-                  No posts available
+                  {activeTab === 'national' ? 'National Updates Coming Soon' : 'Chapter Updates Coming Soon'}
                 </Text>
                 <Text style={[styles.emptySubtitle, { color: colors.textLight }]}>
-                  Check back later for updates
+                  {activeTab === 'national'
+                    ? 'FBLA National posts will appear here once available'
+                    : 'Your chapter posts will appear here once available'
+                  }
                 </Text>
+                <View style={[styles.tipsContainer, { backgroundColor: colors.surface + '80' }]}>
+                  <MaterialIcons name="lightbulb-outline" size={20} color={colors.primary} />
+                  <Text style={[styles.tipsText, { color: colors.textSecondary }]}>
+                    Pull down to refresh for the latest posts
+                  </Text>
+                </View>
               </Animated.View>
             )}
           </ScrollView>
