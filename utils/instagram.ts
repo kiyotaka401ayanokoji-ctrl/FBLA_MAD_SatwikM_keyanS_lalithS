@@ -259,18 +259,242 @@ function extractPostsFromAdditionalData(additionalData: any, username: string): 
   }
 }
 
-// Approach 2: Instagram Basic Display API (placeholder for future implementation)
+// Approach 2: Try Instagram's public GraphQL API endpoints
 async function fetchInstagramBasicDisplayAPI(username: string): Promise<SocialPost[]> {
-  console.log(`🔧 Instagram Basic Display API not configured for @${username}`);
-  console.log(`💡 To implement: Get Instagram Basic Display API access token and configure in app`);
-  return [];
+  try {
+    console.log(`🔍 Trying Instagram GraphQL API for @${username}...`);
+
+    // Instagram's public GraphQL endpoint for user data
+    const queryHash = '8c2a529969ee035a5063f07fc6a387db'; // This is a known query hash for user posts
+    const userId = await getUserIdFromUsername(username);
+
+    if (!userId) {
+      console.log('❌ Could not get user ID from username');
+      return [];
+    }
+
+    const variables = {
+      id: userId,
+      first: 12,
+      after: ''
+    };
+
+    const response = await fetch('https://www.instagram.com/graphql/query/', {
+      method: 'GET',
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'Referer': `https://www.instagram.com/${username}/`,
+        'X-Requested-With': 'XMLHttpRequest',
+      },
+      signal: AbortSignal.timeout(10000),
+    });
+
+    if (!response.ok) {
+      console.log(`❌ GraphQL API failed: ${response.status}`);
+      return [];
+    }
+
+    const data = await response.json();
+    console.log('✅ Got GraphQL response');
+
+    return extractPostsFromGraphQLData(data, username);
+
+  } catch (error) {
+    console.error('❌ GraphQL API error:', error instanceof Error ? error.message : 'Unknown error');
+    return [];
+  }
 }
 
-// Approach 3: Third-party Instagram services (placeholder for future implementation)
+// Get user ID from username
+async function getUserIdFromUsername(username: string): Promise<string | null> {
+  try {
+    console.log(`🔍 Getting user ID for @${username}...`);
+
+    const response = await fetch(`https://www.instagram.com/${username}/`, {
+      method: 'GET',
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+      },
+      signal: AbortSignal.timeout(8000),
+    });
+
+    if (!response.ok) {
+      console.log(`❌ Failed to get profile page: ${response.status}`);
+      return null;
+    }
+
+    const html = await response.text();
+
+    // Extract user ID from the profile page
+    const idMatch = html.match(/"id":"(\\d+)"/) || html.match(/profilePage_([0-9]+)/);
+    if (idMatch) {
+      const userId = idMatch[1].replace(/"/g, '').replace(/\\/g, '');
+      console.log(`✅ Found user ID: ${userId}`);
+      return userId;
+    }
+
+    console.log('❌ User ID not found in profile page');
+    return null;
+
+  } catch (error) {
+    console.error('❌ Error getting user ID:', error instanceof Error ? error.message : 'Unknown error');
+    return null;
+  }
+}
+
+// Extract posts from GraphQL data
+function extractPostsFromGraphQLData(data: any, username: string): SocialPost[] {
+  try {
+    const posts: SocialPost[] = [];
+    const isNational = username === 'fbla_national';
+    const displayName = isNational ? 'FBLA National' : 'FBLA NCHS';
+    const handle = `@${username}`;
+
+    const mediaData = data?.data?.user?.edge_owner_to_timeline_media;
+    if (!mediaData) {
+      console.log('❌ No media data in GraphQL response');
+      return [];
+    }
+
+    const edges = mediaData.edges || [];
+    console.log(`📱 Found ${edges.length} posts in GraphQL response`);
+
+    edges.forEach((edge: any, index: number) => {
+      const node = edge.node;
+      if (!node) return;
+
+      try {
+        const caption = node.edge_media_to_caption?.edges?.[0]?.node?.text || '';
+        const timestamp = node.taken_at_timestamp;
+        const likes = node.edge_liked_by?.count || 0;
+        const comments = node.edge_media_to_comment?.count || 0;
+        const displayUrl = node.display_url;
+        const shortcode = node.shortcode;
+
+        if (caption && displayUrl) {
+          const post: SocialPost = {
+            id: shortcode || `${username}_${index}`,
+            username: displayName,
+            handle,
+            content: caption.length > 280 ? caption.substring(0, 277) + '...' : caption,
+            timestamp: timestamp ? getRelativeTime(timestamp) : `${index}h ago`,
+            likes: likes,
+            retweets: 0,
+            replies: comments,
+            isLiked: false,
+            isRetweeted: false,
+            images: displayUrl ? [displayUrl] : undefined,
+          };
+
+          posts.push(post);
+          console.log(`✅ Extracted GraphQL post ${index + 1}: ${caption.substring(0, 50)}...`);
+        }
+      } catch (postError) {
+        console.error(`❌ Error processing GraphQL post ${index}:`, postError);
+      }
+    });
+
+    console.log(`🎉 Successfully extracted ${posts.length} posts from GraphQL`);
+    return posts;
+
+  } catch (error) {
+    console.error('❌ Error extracting posts from GraphQL data:', error);
+    return [];
+  }
+}
+
+// Approach 3: Try third-party Instagram services (backup approach)
 async function fetchThirdPartyInstagram(username: string): Promise<SocialPost[]> {
-  console.log(`🔧 Third-party Instagram services not configured for @${username}`);
-  console.log(`💡 Options: Instafeed.js, SnapWidget, or similar services`);
-  return [];
+  try {
+    console.log(`🌐 Trying Instagram oEmbed API for @${username}...`);
+
+    // Try to get basic profile info via oEmbed
+    const response = await fetch(`https://www.instagram.com/${username}/embed/`, {
+      method: 'GET',
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+      },
+      signal: AbortSignal.timeout(8000),
+    });
+
+    if (!response.ok) {
+      console.log(`❌ oEmbed failed: ${response.status}`);
+      return [];
+    }
+
+    const html = await response.text();
+    console.log('📄 Got oEmbed HTML, extracting data...');
+
+    // Extract embed data
+    const postMatch = html.match(/window\.__additionalDataLoaded\([^,]+,({.+?})\);/);
+    if (postMatch) {
+      try {
+        const embedData = JSON.parse(postMatch[1]);
+        console.log('✅ Found embed data');
+
+        return extractPostsFromEmbedData(embedData, username);
+      } catch (parseError) {
+        console.error('❌ Error parsing embed data:', parseError);
+      }
+    }
+
+    console.log('❌ No embed data found');
+    return [];
+
+  } catch (error) {
+    console.error('❌ Third-party service error:', error instanceof Error ? error.message : 'Unknown error');
+    return [];
+  }
+}
+
+// Extract posts from embed data
+function extractPostsFromEmbedData(embedData: any, username: string): SocialPost[] {
+  try {
+    const posts: SocialPost[] = [];
+    const isNational = username === 'fbla_national';
+    const displayName = isNational ? 'FBLA National' : 'FBLA NCHS';
+    const handle = `@${username}`;
+
+    // Look for recent posts in embed data
+    const recentPosts = embedData?.data?.recent?.sections?.[0]?.layout_content?.medias || [];
+    console.log(`📱 Found ${recentPosts.length} posts in embed data`);
+
+    recentPosts.slice(0, 6).forEach((post: any, index: number) => {
+      try {
+        const caption = post.media?.caption || '';
+        const displayUrl = post.media?.image?.url;
+        const likes = post.media?.like_count || 0;
+
+        if (caption && displayUrl) {
+          const socialPost: SocialPost = {
+            id: post.media?.code || `${username}_embed_${index}`,
+            username: displayName,
+            handle,
+            content: caption.length > 280 ? caption.substring(0, 277) + '...' : caption,
+            timestamp: `${index}h ago`,
+            likes: likes,
+            retweets: 0,
+            replies: 0,
+            isLiked: false,
+            isRetweeted: false,
+            images: displayUrl ? [displayUrl] : undefined,
+          };
+
+          posts.push(socialPost);
+          console.log(`✅ Extracted embed post ${index + 1}: ${caption.substring(0, 50)}...`);
+        }
+      } catch (postError) {
+        console.error(`❌ Error processing embed post ${index}:`, postError);
+      }
+    });
+
+    console.log(`🎉 Successfully extracted ${posts.length} posts from embed data`);
+    return posts;
+
+  } catch (error) {
+    console.error('❌ Error extracting posts from embed data:', error);
+    return [];
+  }
 }
 
 // Format video duration (seconds to MM:SS)
