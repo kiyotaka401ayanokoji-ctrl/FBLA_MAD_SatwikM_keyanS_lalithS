@@ -1,55 +1,5 @@
 import { SocialPost } from '../types';
 
-// Format timestamp to relative time
-function getRelativeTime(timestamp: number): string {
-  const now = Date.now();
-  const diffInSeconds = Math.floor((now - timestamp * 1000) / 1000);
-
-  if (diffInSeconds < 60) return 'Just now';
-  if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
-  if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
-  if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)}d ago`;
-  
-  const date = new Date(timestamp * 1000);
-  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-}
-
-// Fetch Instagram posts using Instagram's embed API
-async function fetchInstagramPosts(username: string): Promise<SocialPost[]> {
-  try {
-    console.log(`🔍 Fetching Instagram posts for @${username}...`);
-    
-    // Use Instagram's oEmbed API to get post data
-    // This is a public API that doesn't require authentication
-    const response = await fetch(
-      `https://graph.instagram.com/oembed?url=https://www.instagram.com/${username}/&access_token=public`,
-      {
-        method: 'GET',
-        headers: {
-          'Accept': 'application/json',
-        },
-      }
-    );
-
-    if (response.ok) {
-      const data = await response.json();
-      console.log('✅ Got Instagram data:', data);
-      
-      // Create posts from the data
-      const posts = createPostsFromProfile(username);
-      return posts;
-    }
-
-    // If that fails, return curated posts
-    console.log('⚠️ Using curated Instagram posts');
-    return createPostsFromProfile(username);
-  } catch (error) {
-    console.error(`❌ Error fetching Instagram posts:`, error);
-    // Return curated posts as fallback
-    return createPostsFromProfile(username);
-  }
-}
-
 // Create posts based on the actual Instagram profiles
 // These are real posts from the accounts, manually curated
 function createPostsFromProfile(username: string): SocialPost[] {
@@ -238,15 +188,29 @@ function createPostsFromProfile(username: string): SocialPost[] {
 
 // Fetch posts for FBLA National Instagram
 export async function fetchNationalPosts(): Promise<SocialPost[]> {
-  return fetchInstagramPosts('fbla_pbl');
+  console.log('📱 Loading FBLA National posts...');
+  // Simulate a small delay to make it feel like loading
+  await new Promise(resolve => setTimeout(resolve, 300));
+  const posts = createPostsFromProfile('fbla_pbl');
+  console.log(`✅ Loaded ${posts.length} National posts`);
+  return posts;
 }
 
 // Fetch posts for FBLA NCHS Instagram
 export async function fetchChapterPosts(): Promise<SocialPost[]> {
-  return fetchInstagramPosts('fbla.nchs');
+  console.log('🏫 Loading FBLA NCHS posts...');
+  // Simulate a small delay to make it feel like loading
+  await new Promise(resolve => setTimeout(resolve, 300));
+  const posts = createPostsFromProfile('fbla.nchs');
+  console.log(`✅ Loaded ${posts.length} Chapter posts`);
+  return posts;
 }
 
 // Main export function
 export async function fetchInstagramPostsByUsername(username: string): Promise<SocialPost[]> {
-  return fetchInstagramPosts(username);
+  console.log(`📱 Loading posts for @${username}...`);
+  await new Promise(resolve => setTimeout(resolve, 300));
+  const posts = createPostsFromProfile(username);
+  console.log(`✅ Loaded ${posts.length} posts for @${username}`);
+  return posts;
 }
