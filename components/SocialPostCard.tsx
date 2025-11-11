@@ -330,11 +330,9 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.md,
     position: 'relative',
   },
-  videoPlaceholder: {
+  videoThumbnail: {
     width: '100%',
     height: '100%',
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   videoOverlay: {
     position: 'absolute',
@@ -347,12 +345,26 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   playButton: {
-    width: 56,
-    height: 56,
+    width: 64,
+    height: 64,
     borderRadius: BORDER_RADIUS.full,
     alignItems: 'center',
     justifyContent: 'center',
-    ...SHADOWS.medium,
+    ...SHADOWS.large,
+  },
+  videoDuration: {
+    position: 'absolute',
+    bottom: SPACING.sm,
+    right: SPACING.sm,
+    paddingHorizontal: SPACING.xs,
+    paddingVertical: 2,
+    borderRadius: BORDER_RADIUS.sm,
+  },
+  videoDurationText: {
+    ...TYPOGRAPHY.caption,
+    color: '#FFFFFF',
+    fontWeight: '600',
+    fontSize: 11,
   },
   footer: {
     flexDirection: 'row',
