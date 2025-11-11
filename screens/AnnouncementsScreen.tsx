@@ -246,7 +246,7 @@ export default function AnnouncementsScreen() {
                 styles.tabText,
                 { color: activeTab === 'national' ? '#FFFFFF' : colors.textSecondary }
               ]}>
-                National
+                National Updates
               </Text>
             </TouchableOpacity>
 
