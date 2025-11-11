@@ -1,7 +1,8 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { COLORS, SPACING, TYPOGRAPHY } from '../constants/theme';
+import { SPACING, TYPOGRAPHY } from '../constants/theme';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface HeaderProps {
   title: string;
