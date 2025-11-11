@@ -12,29 +12,31 @@ interface HeaderProps {
   onRightPress?: () => void;
 }
 
-export default function Header({ 
-  title, 
-  showBack = false, 
-  onBackPress, 
-  rightIcon, 
-  onRightPress 
+export default function Header({
+  title,
+  showBack = false,
+  onBackPress,
+  rightIcon,
+  onRightPress
 }: HeaderProps) {
+  const { colors } = useTheme();
+
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.surface }]}>
       <View style={styles.leftSection}>
         {showBack && (
           <TouchableOpacity onPress={onBackPress} style={styles.iconButton}>
-            <MaterialIcons name="arrow-back" size={24} color={COLORS.text} />
+            <MaterialIcons name="arrow-back" size={24} color={colors.text} />
           </TouchableOpacity>
         )}
       </View>
-      
-      <Text style={styles.title}>{title}</Text>
-      
+
+      <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
+
       <View style={styles.rightSection}>
         {rightIcon && (
           <TouchableOpacity onPress={onRightPress} style={styles.iconButton}>
-            <MaterialIcons name={rightIcon} size={24} color={COLORS.text} />
+            <MaterialIcons name={rightIcon} size={24} color={colors.text} />
           </TouchableOpacity>
         )}
       </View>
