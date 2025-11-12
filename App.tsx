@@ -7,6 +7,8 @@ import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Platform } from 'react-native';
 import { BlurView } from 'expo-blur';
+import { StackNavigationProp } from '@react-navigation/native';
+import { RootStackParamList } from './types/navigation';
 
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
