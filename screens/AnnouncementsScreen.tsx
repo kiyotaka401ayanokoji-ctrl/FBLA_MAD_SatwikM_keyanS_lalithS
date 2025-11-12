@@ -11,61 +11,6 @@ import { SocialPost } from '../types';
 import { useTheme } from '../contexts/ThemeContext';
 import { SPACING, TYPOGRAPHY, BORDER_RADIUS, SHADOWS } from '../constants/theme';
 
-// Skeleton loading component
-const SkeletonCard = ({ index }: { index: number }) => {
-  const { colors, isDarkMode } = useTheme();
-
-  return (
-    <Animated.View entering={FadeInUp.delay(index * 100).springify()}>
-      <BlurView
-        intensity={isDarkMode ? 45 : 95}
-        tint={isDarkMode ? 'dark' : 'light'}
-        style={[styles.skeletonCard, SHADOWS.medium]}
-      >
-        <View style={[styles.skeletonCardInner, {
-          borderColor: isDarkMode ? 'rgba(90, 159, 238, 0.4)' : 'rgba(255, 255, 255, 0.7)',
-          borderWidth: 1.5,
-          backgroundColor: isDarkMode ? 'transparent' : 'rgba(255, 255, 255, 0.9)'
-        }]}>
-          {/* Header skeleton */}
-          <View style={styles.skeletonHeader}>
-            <View style={[styles.skeletonAvatar, { backgroundColor: colors.surface }]} />
-            <View style={styles.skeletonHeaderText}>
-              <View style={[styles.skeletonTitle, { backgroundColor: colors.surface }]} />
-              <View style={[styles.skeletonSubtitle, { backgroundColor: colors.surface }]} />
-            </View>
-          </View>
-
-          {/* Content skeleton */}
-          <View style={styles.skeletonContent}>
-            <View style={[styles.skeletonLine, { backgroundColor: colors.surface }]} />
-            <View style={[styles.skeletonLine, { backgroundColor: colors.surface }]} />
-            <View style={[styles.skeletonLineShort, { backgroundColor: colors.surface }]} />
-          </View>
-
-          {/* Media skeleton */}
-          <View style={[styles.skeletonMedia, { backgroundColor: colors.surface }]} />
-
-          {/* Footer skeleton */}
-          <View style={styles.skeletonFooter}>
-            <View style={styles.skeletonAction}>
-              <View style={[styles.skeletonIcon, { backgroundColor: colors.surface }]} />
-              <View style={[styles.skeletonText, { backgroundColor: colors.surface }]} />
-            </View>
-            <View style={styles.skeletonAction}>
-              <View style={[styles.skeletonIcon, { backgroundColor: colors.surface }]} />
-              <View style={[styles.skeletonText, { backgroundColor: colors.surface }]} />
-            </View>
-            <View style={styles.skeletonAction}>
-              <View style={[styles.skeletonIcon, { backgroundColor: colors.surface }]} />
-              <View style={[styles.skeletonText, { backgroundColor: colors.surface }]} />
-            </View>
-          </View>
-        </View>
-      </BlurView>
-    </Animated.View>
-  );
-};
 
 type TabType = 'national' | 'chapter';
 
