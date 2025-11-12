@@ -273,21 +273,21 @@ export default function SignUpScreen({ navigation }: SignUpScreenProps) {
   );
 }
 
-function InputField({ 
-  label, 
-  icon, 
-  placeholder, 
-  value, 
-  onChangeText, 
-  error, 
-  secureTextEntry, 
-  rightIcon, 
+function InputField({
+  label,
+  icon,
+  placeholder,
+  value,
+  onChangeText,
+  error,
+  secureTextEntry,
+  rightIcon,
   onRightIconPress,
   keyboardType,
   autoCapitalize,
   multiline,
   colors,
-}: any) {
+}: InputFieldProps) {
   return (
     <View style={styles.inputContainer}>
       <Text style={[styles.label, { color: colors.text }]}>{label}</Text>
