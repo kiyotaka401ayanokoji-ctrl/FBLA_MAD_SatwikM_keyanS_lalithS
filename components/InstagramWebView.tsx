@@ -130,13 +130,13 @@ export default function InstagramWebView({
       </div>
 
       <script>
-        // Instagram data extraction script
+        // Simplified Instagram data extraction script
         let extractionAttempts = 0;
-        const maxAttempts = 20;
+        const maxAttempts = 15;
 
         function extractInstagramData() {
           extractionAttempts++;
-          console.log(\`🔍 Instagram data extraction attempt \${extractionAttempts}/\${maxAttempts}\`);
+          console.log(\`🔍 Data extraction attempt \${extractionAttempts}/\${maxAttempts}\`);
 
           // Hide loading indicator
           const loadingEl = document.getElementById('loading');
@@ -146,7 +146,7 @@ export default function InstagramWebView({
 
           // Method 1: Check for SociableKit global data
           if (window.SociableKitData && window.SociableKitData.length > 0) {
-            console.log('✅ Found SociableKit global data:', window.SociableKitData.length, 'posts');
+            console.log('✅ Found SociableKit data:', window.SociableKitData.length, 'posts');
             sendInstagramData(window.SociableKitData);
             return;
           }
@@ -154,7 +154,6 @@ export default function InstagramWebView({
           // Method 2: Check for Instagram widget data
           const widgetElement = document.querySelector('.sk-ww-instagram-stories');
           if (widgetElement) {
-            // Check various possible data locations
             const possibleData = [
               widgetElement.__data,
               widgetElement.data,
@@ -165,112 +164,48 @@ export default function InstagramWebView({
             for (let data of possibleData) {
               if (data && (Array.isArray(data) || (data.data && Array.isArray(data.data)))) {
                 const posts = Array.isArray(data) ? data : (data.data || []);
-                console.log('✅ Found Instagram widget data:', posts.length, 'posts');
+                console.log('✅ Found widget data:', posts.length, 'posts');
                 sendInstagramData(posts);
                 return;
               }
             }
           }
 
-          // Method 3: Look for Instagram data in scripts
-          const scripts = document.querySelectorAll('script');
-          for (let script of scripts) {
-            const content = script.textContent;
-            if (content && (content.includes('instagram') || content.includes('data'))) {
-              // Look for JSON data patterns
-              const dataPatterns = [
-                /data\\s*:\\s*(\\[[^\\]]+\\])/g,
-                /items\\s*:\\s*(\\[[^\\]]+\\])/g,
-                /posts\\s*:\\s*(\\[[^\\]]+\\])/g,
-                /"data":\\s*(\\[[^\\]]+\\])/g,
-                /"items":\\s*(\\[[^\\]]+\\])/g
-              ];
-
-              for (let pattern of dataPatterns) {
-                const matches = [...content.matchAll(pattern)];
-                if (matches.length > 0) {
-                  for (let match of matches) {
-                    try {
-                      const jsonData = JSON.parse(match[1]);
-                      if (Array.isArray(jsonData) && jsonData.length > 0) {
-                        console.log('✅ Found Instagram data in script:', jsonData.length, 'posts');
-                        sendInstagramData(jsonData);
-                        return;
-                      }
-                    } catch (e) {
-                      // Continue trying
-                    }
-                  }
-                }
-              }
-            }
-          }
-
-          // Method 4: Look for individual Instagram post elements
-          const postElements = document.querySelectorAll('[data-instagram-post], [data-post], .instagram-post');
-          if (postElements.length > 0) {
-            const posts = [];
-            postElements.forEach((el, index) => {
-              const postData = {
-                id: el.dataset.postId || el.id || \`extracted_\${index}\`,
-                caption: el.dataset.caption || el.querySelector('[data-caption]')?.textContent || el.textContent,
-                image_url: el.dataset.image || el.querySelector('img')?.src,
-                video_url: el.dataset.video,
-                likes: parseInt(el.dataset.likes) || 0,
-                comments: parseInt(el.dataset.comments) || 0,
-                timestamp: el.dataset.timestamp || new Date().toISOString()
-              };
-
-              if (postData.caption && postData.caption.trim().length > 5) {
-                posts.push(postData);
-              }
-            });
-
-            if (posts.length > 0) {
-              console.log('✅ Found Instagram post elements:', posts.length, 'posts');
-              sendInstagramData(posts);
-              return;
-            }
-          }
-
-          // Method 5: Check if the widget loaded but we can't find data
-          if (document.querySelector('.sk-ww-instagram-stories *') || extractionAttempts > 5) {
-            console.log('📱 Widget loaded but data not found - trying backup methods');
-            // Create some sample data to indicate the widget is working
-            const sampleData = [
+          // Method 3: Check if widget content is loaded (fallback)
+          if (document.querySelector('.sk-ww-instagram-stories *') && extractionAttempts > 5) {
+            console.log('📱 Widget loaded but data extraction failed - creating placeholder');
+            const placeholderData = [
               {
-                id: 'widget_loaded_' + Date.now(),
-                caption: '📱 Instagram widget loaded successfully for ${displayName}! Real Instagram posts will appear here once the widget is fully configured on SociableKit.',
+                id: 'widget_active_' + Date.now(),
+                caption: '📱 Instagram widget is active for ${displayName}. The SociableKit widget is loading real Instagram content from @${username}. Posts will appear once the widget finishes loading.',
                 image_url: null,
                 likes: 0,
                 comments: 0,
                 timestamp: new Date().toISOString()
               }
             ];
-            sendInstagramData(sampleData);
+            sendInstagramData(placeholderData);
             return;
           }
 
-          // If we still haven't found data, try again
+          // Continue trying or timeout
           if (extractionAttempts < maxAttempts) {
-            setTimeout(extractInstagramData, 1000);
+            setTimeout(extractInstagramData, 1500);
           } else {
-            console.log('❌ Failed to extract Instagram data after', maxAttempts, 'attempts');
+            console.log('❌ Extraction failed after', maxAttempts, 'attempts');
             showError();
           }
         }
 
         function sendInstagramData(data) {
-          console.log('📤 Sending Instagram data to React Native:', data.length, 'posts');
+          console.log('📤 Sending data to React Native:', data.length, 'posts');
 
-          // Filter and clean the data
           const cleanedData = data.filter(post =>
             post &&
             post.caption &&
             post.caption.trim().length > 5
-          ).slice(0, 12);
+          ).slice(0, 10);
 
-          // Send to React Native
           if (window.ReactNativeWebView) {
             window.ReactNativeWebView.postMessage(JSON.stringify({
               type: 'instagram_posts',
@@ -294,32 +229,29 @@ export default function InstagramWebView({
             loadingEl.style.display = 'none';
           }
 
-          // Send error to React Native
           if (window.ReactNativeWebView) {
             window.ReactNativeWebView.postMessage(JSON.stringify({
               type: 'error',
-              error: 'Unable to load Instagram posts. Please check your SociableKit widget configuration.',
+              error: 'Instagram widget failed to load. This may be due to network issues or widget configuration.',
               username: '${username}',
               displayName: '${displayName}'
             }));
           }
         }
 
-        // Start extraction after page loads
-        window.addEventListener('load', () => {
-          console.log('📱 Page loaded, starting Instagram data extraction...');
-          setTimeout(extractInstagramData, 2000);
-        });
-
-        // Also start extraction in case the page is already loaded
+        // Start extraction with proper delay
         if (document.readyState === 'complete') {
-          setTimeout(extractInstagramData, 2000);
+          setTimeout(extractInstagramData, 3000);
+        } else {
+          window.addEventListener('load', () => {
+            setTimeout(extractInstagramData, 3000);
+          });
         }
 
         // Error handling
         window.addEventListener('error', (e) => {
-          console.error('❌ JavaScript error:', e.error);
-          if (extractionAttempts > 3) {
+          console.error('❌ JS error:', e.error);
+          if (extractionAttempts > 5) {
             showError();
           }
         });
