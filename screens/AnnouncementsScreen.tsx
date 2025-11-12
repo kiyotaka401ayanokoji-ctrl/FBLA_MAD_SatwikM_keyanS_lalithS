@@ -245,12 +245,9 @@ export default function AnnouncementsScreen() {
 
   const handleRefresh = async () => {
     setRefreshing(true);
-    if (useWebView) {
-      // Refresh WebView by incrementing key
-      setWebViewKey(prev => prev + 1);
-    } else {
-      await fetchAllPosts();
-    }
+    setLoading(true);
+    setError(null);
+    // WebView will automatically refresh when its parent re-renders due to state changes
   };
 
   // Handle Instagram data from WebView
