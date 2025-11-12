@@ -38,12 +38,30 @@ export default function SocialPostCard({ post, index, onLike, onRetweet }: Socia
   };
 
   const handleOpenPost = async () => {
-    // For Instagram posts, construct the Instagram URL
-    const instagramUrl = `https://www.instagram.com/p/${post.id}/`;
     try {
+      let instagramUrl: string;
+
+      // Handle different ID formats for Instagram URLs
+      if (post.id.startsWith('ig_') || post.id.startsWith('widget_') || post.id.startsWith('webview_info_')) {
+        // For placeholder or widget-generated posts, open the profile page
+        const username = post.handle.replace('@', '');
+        instagramUrl = `https://www.instagram.com/${username}/`;
+      } else {
+        // For real Instagram post IDs, try to open the direct post
+        instagramUrl = `https://www.instagram.com/p/${post.id}/`;
+      }
+
       await WebBrowser.openBrowserAsync(instagramUrl);
     } catch (error) {
-      console.error('Error opening browser:', error);
+      console.error('Error opening Instagram post:', error);
+      // Fallback: try to open the profile page
+      try {
+        const username = post.handle.replace('@', '');
+        const fallbackUrl = `https://www.instagram.com/${username}/`;
+        await WebBrowser.openBrowserAsync(fallbackUrl);
+      } catch (fallbackError) {
+        console.error('Error opening fallback Instagram profile:', fallbackError);
+      }
     }
   };
 
