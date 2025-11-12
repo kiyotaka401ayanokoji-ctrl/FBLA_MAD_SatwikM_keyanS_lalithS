@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { Event } from '../types';
+import { EventDetailScreenNavigationProp } from '../types/navigation';
 import { useTheme } from '../contexts/ThemeContext';
 import { SPACING, TYPOGRAPHY, BORDER_RADIUS, SHADOWS } from '../constants/theme';
 import { showCalendarOptions } from '../utils/calendar';
@@ -14,7 +15,7 @@ interface EventDetailScreenProps {
       event: Event;
     };
   };
-  navigation: any;
+  navigation: EventDetailScreenNavigationProp;
 }
 
 export default function EventDetailScreen({ route, navigation }: EventDetailScreenProps) {
