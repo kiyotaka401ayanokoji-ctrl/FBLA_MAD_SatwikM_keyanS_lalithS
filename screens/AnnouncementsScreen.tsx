@@ -83,6 +83,9 @@ export default function AnnouncementsScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [useWebView, setUseWebView] = useState(false); // Toggle for WebView fallback
+  const [webViewKey, setWebViewKey] = useState(0); // For WebView refresh
+  const webViewRef = useRef<any>(null);
   const { colors, isDarkMode } = useTheme();
 
   // Load cached data and fetch fresh data on mount
