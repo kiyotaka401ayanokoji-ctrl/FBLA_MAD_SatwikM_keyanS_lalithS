@@ -521,7 +521,6 @@ async function fetchSociableKitHTML(instagramHandle: string, username: string): 
         'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15',
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
       },
-      signal: AbortSignal.timeout(10000),
     });
 
     if (!response.ok) {
