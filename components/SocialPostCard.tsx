@@ -215,18 +215,22 @@ export default function SocialPostCard({ post, index, onLike, onRetweet }: Socia
             
             {/* Footer Actions */}
             <View style={[styles.footer, { borderTopColor: colors.divider }]}>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.actionButton}
                 onPress={() => onLike?.(post.id)}
                 activeOpacity={0.7}
+                accessible={true}
+                accessibilityLabel={`${post.isLiked ? 'Unlike' : 'Like'} this post`}
+                accessibilityHint={`${post.likes} ${post.likes === 1 ? 'like' : 'likes'}`}
+                accessibilityRole="button"
               >
-                <MaterialIcons 
-                  name={post.isLiked ? 'favorite' : 'favorite-border'} 
-                  size={18} 
-                  color={post.isLiked ? colors.error : colors.textLight} 
+                <MaterialIcons
+                  name={post.isLiked ? 'favorite' : 'favorite-border'}
+                  size={18}
+                  color={post.isLiked ? colors.error : colors.textLight}
                 />
-                <Text style={[styles.actionText, { 
-                  color: post.isLiked ? colors.error : colors.textLight 
+                <Text style={[styles.actionText, {
+                  color: post.isLiked ? colors.error : colors.textLight
                 }]}>
                   {post.likes}
                 </Text>
