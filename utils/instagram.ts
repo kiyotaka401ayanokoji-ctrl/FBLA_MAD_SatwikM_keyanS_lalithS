@@ -975,7 +975,6 @@ async function fetchThirdPartyInstagramService(instagramHandle: string, username
         'User-Agent': 'FBLA-Connect-App/1.0',
         'Accept': 'application/rss+xml, application/xml, text/xml',
       },
-      signal: AbortSignal.timeout(10000),
     });
 
     if (!response.ok) {
