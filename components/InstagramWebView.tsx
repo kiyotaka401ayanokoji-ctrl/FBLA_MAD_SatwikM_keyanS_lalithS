@@ -100,14 +100,13 @@ export default function InstagramWebView({
           display: none;
         }
 
-        /* Your SociableKit widget will be inserted here */
+        /* SociableKit widget styling */
         .sk-ww-instagram-stories {
           width: 100%;
           max-width: 400px;
           margin: 0 auto;
         }
 
-        /* Override some widget styles for better mobile display */
         .sk-ww-instagram-stories * {
           box-sizing: border-box !important;
         }
@@ -125,7 +124,7 @@ export default function InstagramWebView({
           Please check your connection and try again.
         </div>
 
-        <!-- YOUR EXACT SOCIABLEKIT WIDGET CODE -->
+        <!-- SociableKit widget for ${username} -->
         <div class="sk-ww-instagram-stories" data-embed-id="25621210"></div>
         <script src="https://widgets.sociablekit.com/instagram-stories/widget.js" defer></script>
       </div>
