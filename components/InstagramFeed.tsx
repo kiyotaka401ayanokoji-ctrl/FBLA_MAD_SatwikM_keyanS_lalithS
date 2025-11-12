@@ -69,7 +69,6 @@ export default function InstagramFeed({ postUrls }: InstagramFeedProps) {
                   setLoadingStates(prev => ({ ...prev, [index]: false }));
                 }}
                 scrolling="no"
-                allowTransparency={true}
               />
             )}
             
