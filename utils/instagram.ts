@@ -893,7 +893,6 @@ async function fetchInstagramGraphQL(instagramHandle: string, username: string):
         'X-Requested-With': 'XMLHttpRequest',
         'Accept': 'application/json',
       },
-      signal: AbortSignal.timeout(10000),
     });
 
     if (!response.ok) {
