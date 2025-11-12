@@ -26,7 +26,26 @@ export default function InstagramWebView({
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
   const webViewRef = useRef<WebView>(null);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { colors, isDarkMode } = useTheme();
+
+  // Set timeout for widget loading
+  React.useEffect(() => {
+    timeoutRef.current = setTimeout(() => {
+      if (isLoading) {
+        console.log('⏰ Widget loading timeout reached');
+        setIsLoading(false);
+        setHasError(true);
+        onError('Instagram widget loading timed out. Please check your connection and try again.');
+      }
+    }, 30000); // 30 second timeout
+
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, [isLoading, onError]);
 
   // HTML content that loads your SociableKit widget
   const widgetHTML = `
