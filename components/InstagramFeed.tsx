@@ -12,31 +12,26 @@ interface InstagramFeedProps {
 export default function InstagramFeed({ postUrls }: InstagramFeedProps) {
   const { colors } = useTheme();
 
+  // Extract username from the first post URL
+  const extractUsername = (url: string): string => {
+    const match = url.match(/instagram\.com\/([^\/]+)/);
+    return match ? `@${match[1]}` : '@fbla.nchs';
+  };
+
+  const username = postUrls.length > 0 ? extractUsername(postUrls[0]) : '@fbla.nchs';
+
   return (
     <ScrollView 
       style={styles.container}
       contentContainerStyle={styles.scrollContent}
       showsVerticalScrollIndicator={false}
     >
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.headerContent}>
-          <MaterialIcons name="photo-camera" size={28} color={colors.primary} />
-          <Text style={[styles.headerTitle, { color: colors.text }]}>
-            Instagram Feed
-          </Text>
-        </View>
-        <Text style={[styles.headerSubtitle, { color: colors.textLight }]}>
-          Latest posts from @fbla.nchs
-        </Text>
-      </View>
-
       {/* Posts */}
       {postUrls.map((url, index) => (
         <InstagramPostCard 
           key={index} 
           postUrl={url}
-          username="@fbla.nchs"
+          username={username}
         />
       ))}
 
@@ -57,21 +52,6 @@ const styles = StyleSheet.create({
   scrollContent: {
     padding: SPACING.lg,
     paddingBottom: SPACING.xxl,
-  },
-  header: {
-    marginBottom: SPACING.lg,
-  },
-  headerContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: SPACING.xs,
-  },
-  headerTitle: {
-    ...TYPOGRAPHY.h2,
-    marginLeft: SPACING.sm,
-  },
-  headerSubtitle: {
-    ...TYPOGRAPHY.bodySmall,
   },
   footer: {
     alignItems: 'center',

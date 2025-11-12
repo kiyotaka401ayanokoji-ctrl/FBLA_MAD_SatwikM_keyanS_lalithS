@@ -15,9 +15,9 @@ const TAB_STORAGE_KEY = '@announcements_last_tab';
 
 // 🔥 UPDATE THESE POST URLS WHENEVER YOU WANT TO SHOW NEW POSTS!
 const NATIONAL_POSTS = [
-  'https://www.instagram.com/fbla_pbl/p/DDwZxqhSaVu/',
-  'https://www.instagram.com/fbla_pbl/p/DDtxqJOyqHN/',
-  'https://www.instagram.com/fbla_pbl/p/DDrJCqhSqmH/',
+  'https://www.instagram.com/westcentral.wafbla/p/DQTEL3_EWjS/',
+  'https://www.instagram.com/westcentral.wafbla/p/DQZikx8CUur/',
+  'https://www.instagram.com/westcentral.wafbla/p/DQK8_x3gXyt/',
 ];
 
 const CHAPTER_POSTS = [
@@ -60,7 +60,7 @@ export default function AnnouncementsScreen() {
   };
 
   const handleFollowInstagram = async () => {
-    const username = activeTab === 'national' ? 'fbla_pbl' : 'fbla.nchs';
+    const username = activeTab === 'national' ? 'westcentral.wafbla' : 'fbla.nchs';
     try {
       await Linking.openURL(`https://www.instagram.com/${username}/`);
     } catch (error) {
@@ -68,7 +68,7 @@ export default function AnnouncementsScreen() {
     }
   };
 
-  const instagramHandle = activeTab === 'national' ? '@fbla_pbl' : '@fbla.nchs';
+  const instagramHandle = activeTab === 'national' ? '@westcentral.wafbla' : '@fbla.nchs';
   const currentPosts = activeTab === 'national' ? NATIONAL_POSTS : CHAPTER_POSTS;
 
   return (
@@ -82,20 +82,23 @@ export default function AnnouncementsScreen() {
       />
       
       <SafeAreaView style={styles.safeArea} edges={['top']}>
-        {/* Header */}
+        {/* Cleaner Header */}
         <Animated.View entering={FadeIn.duration(600)} style={styles.header}>
-          <View>
-            <Text style={[styles.headerTitle, { color: colors.text }]}>Announcements</Text>
-            <Text style={[styles.headerSubtitle, { color: colors.textLight }]}>
-              Live from Instagram {instagramHandle} 📸
-            </Text>
+          <View style={styles.headerContent}>
+            <MaterialIcons name="campaign" size={28} color={colors.primary} />
+            <View style={styles.headerTextContainer}>
+              <Text style={[styles.headerTitle, { color: colors.text }]}>Announcements</Text>
+              <Text style={[styles.headerSubtitle, { color: colors.textLight }]}>
+                {instagramHandle}
+              </Text>
+            </View>
           </View>
           <TouchableOpacity 
             style={[styles.followButton, { backgroundColor: colors.primary }]}
             onPress={handleFollowInstagram}
             activeOpacity={0.8}
           >
-            <MaterialIcons name="open-in-new" size={18} color="#FFFFFF" />
+            <MaterialIcons name="open-in-new" size={20} color="#FFFFFF" />
           </TouchableOpacity>
         </Animated.View>
 
@@ -122,7 +125,7 @@ export default function AnnouncementsScreen() {
                 styles.tabText,
                 { color: activeTab === 'national' ? '#FFFFFF' : colors.textSecondary }
               ]}>
-                National
+                Regional
               </Text>
             </TouchableOpacity>
 
@@ -149,7 +152,7 @@ export default function AnnouncementsScreen() {
           </View>
         </Animated.View>
 
-        {/* Instagram Feed - Shows REAL embedded posts */}
+        {/* Instagram Feed */}
         <View style={styles.feedContainer}>
           <InstagramFeed postUrls={currentPosts} key={activeTab} />
         </View>
@@ -170,14 +173,23 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: SPACING.lg,
-    paddingVertical: SPACING.md,
+    paddingTop: SPACING.sm,
+    paddingBottom: SPACING.md,
+  },
+  headerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
+  },
+  headerTextContainer: {
+    justifyContent: 'center',
   },
   headerTitle: {
     ...TYPOGRAPHY.h2,
-    marginBottom: 4,
+    marginBottom: 2,
   },
   headerSubtitle: {
-    ...TYPOGRAPHY.bodySmall,
+    ...TYPOGRAPHY.caption,
     fontWeight: '500',
   },
   followButton: {
