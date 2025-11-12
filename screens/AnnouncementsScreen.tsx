@@ -15,9 +15,9 @@ const TAB_STORAGE_KEY = '@announcements_last_tab';
 
 // 🔥 UPDATE THESE POST URLS WHENEVER YOU WANT TO SHOW NEW POSTS!
 const NATIONAL_POSTS = [
-  'https://www.instagram.com/p/EXAMPLE_NATIONAL_1/',
-  'https://www.instagram.com/p/EXAMPLE_NATIONAL_2/',
-  'https://www.instagram.com/p/EXAMPLE_NATIONAL_3/',
+  'https://www.instagram.com/fbla_pbl/p/DDwZxqhSaVu/',
+  'https://www.instagram.com/fbla_pbl/p/DDtxqJOyqHN/',
+  'https://www.instagram.com/fbla_pbl/p/DDrJCqhSqmH/',
 ];
 
 const CHAPTER_POSTS = [
