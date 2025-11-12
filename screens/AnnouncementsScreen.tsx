@@ -1,37 +1,38 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import SocialPostCard from '../components/SocialPostCard';
-import { fetchNationalPosts, fetchChapterPosts } from '../utils/instagram';
-import { SocialPost } from '../types';
+import InstagramEmbed from '../components/InstagramEmbed';
 import { useTheme } from '../contexts/ThemeContext';
 import { SPACING, TYPOGRAPHY, BORDER_RADIUS, SHADOWS } from '../constants/theme';
 
 type TabType = 'national' | 'chapter';
 
 const TAB_STORAGE_KEY = '@announcements_last_tab';
-const CACHE_KEY_NATIONAL = '@announcements_national_cache';
-const CACHE_KEY_CHAPTER = '@announcements_chapter_cache';
-const CACHE_EXPIRY = 5 * 60 * 1000; // 5 minutes
+
+// 🔥 UPDATE THESE POST URLS WHENEVER YOU WANT TO SHOW NEW POSTS!
+const NATIONAL_POSTS = [
+  'https://www.instagram.com/p/EXAMPLE1/',
+  'https://www.instagram.com/p/EXAMPLE2/',
+  'https://www.instagram.com/p/EXAMPLE3/',
+];
+
+const CHAPTER_POSTS = [
+  'https://www.instagram.com/p/EXAMPLE4/',
+  'https://www.instagram.com/p/EXAMPLE5/',
+  'https://www.instagram.com/p/EXAMPLE6/',
+];
 
 export default function AnnouncementsScreen() {
   const [activeTab, setActiveTab] = useState<TabType>('national');
-  const [nationalPosts, setNationalPosts] = useState<SocialPost[]>([]);
-  const [chapterPosts, setChapterPosts] = useState<SocialPost[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const { colors, isDarkMode } = useTheme();
 
-  // Load cached data and fetch fresh data on mount
+  // Load last tab on mount
   useEffect(() => {
     loadLastTab();
-    loadCachedData();
-    fetchAllPosts();
   }, []);
 
   // Save tab when it changes
@@ -58,137 +59,17 @@ export default function AnnouncementsScreen() {
     }
   };
 
-  const loadCachedData = async () => {
+  const handleFollowInstagram = async () => {
+    const username = activeTab === 'national' ? 'fbla_pbl' : 'fbla.nchs';
     try {
-      const [nationalCache, chapterCache] = await Promise.all([
-        AsyncStorage.getItem(CACHE_KEY_NATIONAL),
-        AsyncStorage.getItem(CACHE_KEY_CHAPTER),
-      ]);
-
-      if (nationalCache) {
-        const { data, timestamp } = JSON.parse(nationalCache);
-        if (Date.now() - timestamp < CACHE_EXPIRY) {
-          setNationalPosts(data);
-        }
-      }
-
-      if (chapterCache) {
-        const { data, timestamp } = JSON.parse(chapterCache);
-        if (Date.now() - timestamp < CACHE_EXPIRY) {
-          setChapterPosts(data);
-        }
-      }
+      await Linking.openURL(`https://www.instagram.com/${username}/`);
     } catch (error) {
-      console.error('Error loading cached data:', error);
+      console.error('Error opening Instagram:', error);
     }
   };
 
-  const cacheData = async (key: string, data: SocialPost[]) => {
-    try {
-      await AsyncStorage.setItem(
-        key,
-        JSON.stringify({ data, timestamp: Date.now() })
-      );
-    } catch (error) {
-      console.error('Error caching data:', error);
-    }
-  };
-
-  const fetchAllPosts = async () => {
-    try {
-      setError(null);
-      
-      const [national, chapter] = await Promise.all([
-        fetchNationalPosts(),
-        fetchChapterPosts(),
-      ]);
-
-      // Always set posts, even if empty
-      setNationalPosts(national);
-      setChapterPosts(chapter);
-
-      // Cache the data
-      if (national.length > 0) {
-        cacheData(CACHE_KEY_NATIONAL, national);
-      }
-      if (chapter.length > 0) {
-        cacheData(CACHE_KEY_CHAPTER, chapter);
-      }
-
-      // Only show error if both are empty
-      if (national.length === 0 && chapter.length === 0) {
-        setError('Unable to load posts. Please try again later.');
-      }
-    } catch (err) {
-      console.error('Error fetching posts:', err);
-      // Don't set error if we have cached data
-      if (nationalPosts.length === 0 && chapterPosts.length === 0) {
-        setError('Failed to load posts. Please check your connection.');
-      }
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
-
-  const handleRefresh = async () => {
-    setRefreshing(true);
-    await fetchAllPosts();
-  };
-
-  const handleLike = (id: string) => {
-    if (activeTab === 'national') {
-      setNationalPosts(prev => prev.map(post => {
-        if (post.id === id) {
-          return {
-            ...post,
-            isLiked: !post.isLiked,
-            likes: post.isLiked ? post.likes - 1 : post.likes + 1,
-          };
-        }
-        return post;
-      }));
-    } else {
-      setChapterPosts(prev => prev.map(post => {
-        if (post.id === id) {
-          return {
-            ...post,
-            isLiked: !post.isLiked,
-            likes: post.isLiked ? post.likes - 1 : post.likes + 1,
-          };
-        }
-        return post;
-      }));
-    }
-  };
-
-  const handleRetweet = (id: string) => {
-    if (activeTab === 'national') {
-      setNationalPosts(prev => prev.map(post => {
-        if (post.id === id) {
-          return {
-            ...post,
-            isRetweeted: !post.isRetweeted,
-            retweets: post.isRetweeted ? post.retweets - 1 : post.retweets + 1,
-          };
-        }
-        return post;
-      }));
-    } else {
-      setChapterPosts(prev => prev.map(post => {
-        if (post.id === id) {
-          return {
-            ...post,
-            isRetweeted: !post.isRetweeted,
-            retweets: post.isRetweeted ? post.retweets - 1 : post.retweets + 1,
-          };
-        }
-        return post;
-      }));
-    }
-  };
-
-  const currentPosts = activeTab === 'national' ? nationalPosts : chapterPosts;
+  const currentPosts = activeTab === 'national' ? NATIONAL_POSTS : CHAPTER_POSTS;
+  const instagramHandle = activeTab === 'national' ? '@fbla_pbl' : '@fbla.nchs';
 
   return (
     <View style={styles.container}>
@@ -206,20 +87,15 @@ export default function AnnouncementsScreen() {
           <View>
             <Text style={[styles.headerTitle, { color: colors.text }]}>Announcements</Text>
             <Text style={[styles.headerSubtitle, { color: colors.textLight }]}>
-              Live from Instagram
+              Live from Instagram {instagramHandle} 📸
             </Text>
           </View>
           <TouchableOpacity 
-            style={[styles.refreshButton, { backgroundColor: colors.surface }]}
-            onPress={handleRefresh}
-            disabled={refreshing}
+            style={[styles.followButton, { backgroundColor: colors.primary }]}
+            onPress={handleFollowInstagram}
+            activeOpacity={0.8}
           >
-            <MaterialIcons 
-              name="refresh" 
-              size={22} 
-              color={colors.primary}
-              style={refreshing ? { opacity: 0.5 } : {}}
-            />
+            <MaterialIcons name="open-in-new" size={18} color="#FFFFFF" />
           </TouchableOpacity>
         </Animated.View>
 
@@ -273,69 +149,35 @@ export default function AnnouncementsScreen() {
           </View>
         </Animated.View>
 
-        {/* Posts Feed */}
-        {loading ? (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={colors.primary} />
-            <Text style={[styles.loadingText, { color: colors.textLight }]}>
-              Loading posts...
-            </Text>
-          </View>
-        ) : (
-          <ScrollView
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.feedContainer}
-            refreshControl={
-              <RefreshControl
-                refreshing={refreshing}
-                onRefresh={handleRefresh}
-                tintColor={colors.primary}
-                colors={[colors.primary]}
-              />
-            }
-          >
-            {error ? (
+        {/* Instagram Feed */}
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.feedContainer}
+        >
+          {currentPosts.length > 0 ? (
+            currentPosts.map((postUrl, index) => (
               <Animated.View 
-                entering={FadeIn.delay(400)}
-                style={[styles.emptyState, { backgroundColor: colors.surface }]}
+                key={index}
+                entering={FadeInDown.delay(300 + (index * 100)).springify()}
               >
-                <MaterialIcons name="error-outline" size={64} color={colors.error} />
-                <Text style={[styles.emptyTitle, { color: colors.text }]}>
-                  {error}
-                </Text>
-                <TouchableOpacity 
-                  style={[styles.retryButton, { backgroundColor: colors.primary }]}
-                  onPress={handleRefresh}
-                >
-                  <Text style={styles.retryButtonText}>Retry</Text>
-                </TouchableOpacity>
+                <InstagramEmbed postUrl={postUrl} />
               </Animated.View>
-            ) : currentPosts.length > 0 ? (
-              currentPosts.map((post, index) => (
-                <SocialPostCard
-                  key={post.id}
-                  post={post}
-                  index={index}
-                  onLike={handleLike}
-                  onRetweet={handleRetweet}
-                />
-              ))
-            ) : (
-              <Animated.View 
-                entering={FadeIn.delay(400)}
-                style={[styles.emptyState, { backgroundColor: colors.surface }]}
-              >
-                <MaterialIcons name="inbox" size={64} color={colors.textLight} />
-                <Text style={[styles.emptyTitle, { color: colors.text }]}>
-                  No posts available
-                </Text>
-                <Text style={[styles.emptySubtitle, { color: colors.textLight }]}>
-                  Check back later for updates
-                </Text>
-              </Animated.View>
-            )}
-          </ScrollView>
-        )}
+            ))
+          ) : (
+            <Animated.View 
+              entering={FadeIn.delay(400)}
+              style={[styles.emptyState, { backgroundColor: colors.surface }]}
+            >
+              <MaterialIcons name="photo-library" size={64} color={colors.textLight} />
+              <Text style={[styles.emptyTitle, { color: colors.text }]}>
+                No posts yet
+              </Text>
+              <Text style={[styles.emptySubtitle, { color: colors.textLight }]}>
+                Check back soon for updates!
+              </Text>
+            </Animated.View>
+          )}
+        </ScrollView>
       </SafeAreaView>
     </View>
   );
@@ -363,7 +205,7 @@ const styles = StyleSheet.create({
     ...TYPOGRAPHY.bodySmall,
     fontWeight: '500',
   },
-  refreshButton: {
+  followButton: {
     width: 44,
     height: 44,
     borderRadius: BORDER_RADIUS.md,
@@ -399,47 +241,27 @@ const styles = StyleSheet.create({
     ...TYPOGRAPHY.bodySmall,
     fontWeight: '600',
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingBottom: 100,
-  },
-  loadingText: {
-    ...TYPOGRAPHY.body,
-    marginTop: SPACING.md,
-  },
   feedContainer: {
+    paddingHorizontal: SPACING.lg,
     paddingTop: SPACING.sm,
     paddingBottom: 100,
+    alignItems: 'center',
   },
   emptyState: {
-    marginHorizontal: SPACING.lg,
-    marginTop: SPACING.xxl,
+    width: '100%',
     padding: SPACING.xl,
     borderRadius: BORDER_RADIUS.xl,
     alignItems: 'center',
+    marginTop: SPACING.xxl,
     ...SHADOWS.medium,
   },
   emptyTitle: {
     ...TYPOGRAPHY.h3,
     marginTop: SPACING.md,
     marginBottom: SPACING.xs,
-    textAlign: 'center',
   },
   emptySubtitle: {
     ...TYPOGRAPHY.body,
     textAlign: 'center',
-  },
-  retryButton: {
-    marginTop: SPACING.md,
-    paddingHorizontal: SPACING.lg,
-    paddingVertical: SPACING.sm,
-    borderRadius: BORDER_RADIUS.md,
-  },
-  retryButtonText: {
-    ...TYPOGRAPHY.bodyMedium,
-    color: '#FFFFFF',
-    fontWeight: '600',
   },
 });
