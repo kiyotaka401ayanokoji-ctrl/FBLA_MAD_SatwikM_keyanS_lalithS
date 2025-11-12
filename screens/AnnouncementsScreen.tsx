@@ -83,7 +83,7 @@ export default function AnnouncementsScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-    const { colors, isDarkMode } = useTheme();
+  const { colors, isDarkMode } = useTheme();
 
   // Load cached data and fetch fresh data on mount
   useEffect(() => {
