@@ -254,7 +254,7 @@ export default function AnnouncementsScreen() {
   const handleInstagramData = (username: string, posts: SocialPost[]) => {
     console.log(`📱 Received ${posts.length} Instagram posts from WebView for @${username}`);
 
-    if (username === 'fbla_national') {
+    if (username === 'fbla_pbl') {
       setNationalPosts(posts);
       cacheData(CACHE_KEY_NATIONAL, posts);
     } else if (username === 'fbla.nchs') {
