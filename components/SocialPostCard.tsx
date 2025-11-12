@@ -27,6 +27,7 @@ export default function SocialPostCard({ post, index, onLike, onRetweet }: Socia
       newSet.delete(imageIndex);
       return newSet;
     });
+    console.warn(`Image ${imageIndex} failed to load for post ${post.id}`);
   };
 
   const handleImageLoad = (imageIndex: number) => {
@@ -35,7 +36,17 @@ export default function SocialPostCard({ post, index, onLike, onRetweet }: Socia
       newSet.delete(imageIndex);
       return newSet;
     });
+    console.log(`Image ${imageIndex} loaded successfully for post ${post.id}`);
   };
+
+  // Set loading state when component mounts
+  React.useEffect(() => {
+    if (post.images && post.images.length > 0) {
+      const loadingIndices = new Set(post.images.map((_, index) => index));
+      setImageLoading(loadingIndices);
+      setImageLoadErrors(new Set());
+    }
+  }, [post.images]);
 
   const handleOpenPost = async () => {
     try {
