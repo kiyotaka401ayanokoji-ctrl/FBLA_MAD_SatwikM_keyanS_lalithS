@@ -413,112 +413,21 @@ export default function AnnouncementsScreen() {
         </Animated.View>
 
         
-        {/* Posts Feed */}
-        {useWebView ? (
-          <View style={styles.webViewContainer}>
-            <InstagramWebView
-              key={webViewKey}
-              username={activeTab === 'national' ? 'fbla_national' : 'fbla.nchs'}
-              displayName={activeTab === 'national' ? 'FBLA National' : 'FBLA NCHS'}
-              onDataExtracted={(posts) => handleInstagramData(
-                activeTab === 'national' ? 'fbla_national' : 'fbla.nchs',
-                posts
-              )}
-              onError={(errorMessage) => handleInstagramError(
-                activeTab === 'national' ? 'fbla_national' : 'fbla.nchs',
-                errorMessage
-              )}
-            />
-          </View>
-        ) : loading ? (
-          <ScrollView
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.feedContainer}
-          >
-            {[1, 2, 3].map((index) => (
-              <SkeletonCard key={index} index={index} />
-            ))}
-          </ScrollView>
-        ) : (
-          <ScrollView
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.feedContainer}
-            refreshControl={
-              <RefreshControl
-                refreshing={refreshing}
-                onRefresh={handleRefresh}
-                tintColor={colors.primary}
-                colors={[colors.primary]}
-              />
-            }
-          >
-            {error ? (
-              <Animated.View
-                entering={FadeIn.delay(400)}
-                style={[styles.emptyState, { backgroundColor: colors.surface }]}
-              >
-                <MaterialIcons name="wifi-off" size={64} color={colors.error} />
-                <Text style={[styles.emptyTitle, { color: colors.text }]}>
-                  {error}
-                </Text>
-                <Text style={[styles.emptySubtitle, { color: colors.textLight }]}>
-                  Pull down to refresh or try the button below
-                </Text>
-                <TouchableOpacity
-                  style={[styles.retryButton, { backgroundColor: colors.primary }]}
-                  onPress={handleRefresh}
-                  disabled={refreshing}
-                >
-                  <MaterialIcons
-                    name="refresh"
-                    size={20}
-                    color="#FFFFFF"
-                    style={refreshing ? { marginRight: SPACING.xs } : { marginRight: SPACING.xs }}
-                  />
-                  <Text style={styles.retryButtonText}>
-                    {refreshing ? 'Refreshing...' : 'Retry Now'}
-                  </Text>
-                </TouchableOpacity>
-              </Animated.View>
-            ) : currentPosts.length > 0 ? (
-              currentPosts.map((post, index) => (
-                <SocialPostCard
-                  key={post.id}
-                  post={post}
-                  index={index}
-                  onLike={handleLike}
-                  onRetweet={handleRetweet}
-                />
-              ))
-            ) : (
-              <Animated.View
-                entering={FadeIn.delay(400)}
-                style={[styles.emptyState, { backgroundColor: colors.surface }]}
-              >
-                <MaterialIcons
-                  name={activeTab === 'national' ? 'public' : 'school'}
-                  size={64}
-                  color={colors.textLight}
-                />
-                <Text style={[styles.emptyTitle, { color: colors.text }]}>
-                  {activeTab === 'national' ? 'National Updates Coming Soon' : 'Chapter Updates Coming Soon'}
-                </Text>
-                <Text style={[styles.emptySubtitle, { color: colors.textLight }]}>
-                  {activeTab === 'national'
-                    ? 'FBLA National posts will appear here once available'
-                    : 'Your chapter posts will appear here once available'
-                  }
-                </Text>
-                <View style={[styles.tipsContainer, { backgroundColor: colors.surface + '80' }]}>
-                  <MaterialIcons name="lightbulb-outline" size={20} color={colors.primary} />
-                  <Text style={[styles.tipsText, { color: colors.textSecondary }]}>
-                    Pull down to refresh for the latest posts
-                  </Text>
-                </View>
-              </Animated.View>
+        {/* Posts Feed - Instagram WebView */}
+        <View style={styles.webViewContainer}>
+          <InstagramWebView
+            username={activeTab === 'national' ? 'fbla_pbl' : 'fbla.nchs'}
+            displayName={activeTab === 'national' ? 'FBLA National' : 'FBLA NCHS'}
+            onDataExtracted={(posts) => handleInstagramData(
+              activeTab === 'national' ? 'fbla_pbl' : 'fbla.nchs',
+              posts
             )}
-          </ScrollView>
-        )}
+            onError={(errorMessage) => handleInstagramError(
+              activeTab === 'national' ? 'fbla_pbl' : 'fbla.nchs',
+              errorMessage
+            )}
+          />
+        </View>
       </SafeAreaView>
     </View>
   );
