@@ -1,10 +1,6 @@
 // Test script to simulate the Instagram integration exactly as the React Native app would use it
 const fetch = require('node-fetch');
 
-// Mock console methods to match React Native behavior
-console.log = (...args) => {
-  console.log('[APP]', ...args);
-};
 
 // Import and test the Instagram functionality
 async function testInstagramIntegration() {
