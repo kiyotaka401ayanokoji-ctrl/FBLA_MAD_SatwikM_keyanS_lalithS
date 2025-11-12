@@ -40,7 +40,7 @@ export default function SocialPostCard({ post, index, onLike, onRetweet }: Socia
   };
 
   // Set loading state when component mounts
-  React.useEffect(() => {
+  useEffect(() => {
     if (post.images && post.images.length > 0) {
       const loadingIndices = new Set(post.images.map((_, index) => index));
       setImageLoading(loadingIndices);
