@@ -85,11 +85,10 @@ export default function AnnouncementsScreen() {
   const [error, setError] = useState<string | null>(null);
   const { colors, isDarkMode } = useTheme();
 
-  // Load cached data and fetch fresh data on mount
+  // Load cached data on mount
   useEffect(() => {
     loadLastTab();
     loadCachedData();
-    fetchAllPosts();
   }, []);
 
   // Save tab when it changes
