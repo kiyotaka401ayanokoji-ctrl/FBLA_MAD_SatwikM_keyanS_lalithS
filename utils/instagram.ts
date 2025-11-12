@@ -14,57 +14,23 @@ export function getRelativeTime(timestamp: number): string {
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
-// NOTE: Instagram data loading is now primarily handled by InstagramWebView component
-// This utility function provides a fallback for when WebView is not available
-
-// Simplified fallback function for when WebView is not available
-// The main Instagram loading is now handled by InstagramWebView component
-async function fetchInstagramPosts(username: string): Promise<SocialPost[]> {
-  console.log(`🔄 Fallback Instagram fetch for @${username} - WebView should handle real data`);
-
-  const isNational = username === 'fbla_national';
-  const displayName = isNational ? 'FBLA National' : 'FBLA NCHS';
-
-  // Return informative posts about using the WebView for real Instagram data
-  const infoPosts: SocialPost[] = [
-    {
-      id: `webview_info_${username}_${Date.now()}`,
-      username: displayName,
-      handle: `@${username}`,
-      content: `📱 Real Instagram posts are loaded through SociableKit WebView widget. Your content from @${username} will appear here once the widget is fully loaded.`,
-      timestamp: 'Loading...',
-      likes: 0,
-      retweets: 0,
-      replies: 0,
-      isLiked: false,
-      isRetweeted: false,
-    }
-  ];
-
-  return infoPosts;
-}
-
 // Format video duration
-function formatVideoDuration(seconds: number): string {
+export function formatVideoDuration(seconds: number): string {
   const mins = Math.floor(seconds / 60);
   const secs = Math.floor(seconds % 60);
   return `${mins}:${secs.toString().padStart(2, '0')}`;
 }
 
-// Fetch posts for FBLA National Instagram
+// These functions are no longer used - Instagram data is handled by InstagramWebView component
+// Keeping exports for backward compatibility but they now throw descriptive errors
 export async function fetchNationalPosts(): Promise<SocialPost[]> {
-  return fetchInstagramPosts('fbla_national');
+  throw new Error('fetchNationalPosts is deprecated. Instagram data is now handled by InstagramWebView component.');
 }
 
-// Fetch posts for FBLA NCHS Instagram
 export async function fetchChapterPosts(): Promise<SocialPost[]> {
-  return fetchInstagramPosts('fbla.nchs');
+  throw new Error('fetchChapterPosts is deprecated. Instagram data is now handled by InstagramWebView component.');
 }
 
-// Main export function
 export async function fetchInstagramPostsByUsername(username: string): Promise<SocialPost[]> {
-  return fetchInstagramPosts(username);
+  throw new Error('fetchInstagramPostsByUsername is deprecated. Instagram data is now handled by InstagramWebView component.');
 }
-
-// Export utility functions for the WebView component
-export { formatVideoDuration };
