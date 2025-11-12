@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -7,6 +7,7 @@ import { BlurView } from 'expo-blur';
 import Animated, { FadeIn, FadeInDown, FadeInUp } from 'react-native-reanimated';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import SocialPostCard from '../components/SocialPostCard';
+import InstagramWebView from '../components/InstagramWebView';
 import { fetchNationalPosts, fetchChapterPosts } from '../utils/instagram';
 import { SocialPost } from '../types';
 import { useTheme } from '../contexts/ThemeContext';
