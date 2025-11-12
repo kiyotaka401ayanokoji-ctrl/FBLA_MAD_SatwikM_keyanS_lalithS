@@ -12,6 +12,22 @@ interface SignUpScreenProps {
   navigation: any;
 }
 
+interface InputFieldProps {
+  label: string;
+  icon: string;
+  placeholder: string;
+  value: string;
+  onChangeText: (text: string) => void;
+  error?: string;
+  secureTextEntry?: boolean;
+  rightIcon?: string;
+  onRightIconPress?: () => void;
+  keyboardType?: string;
+  autoCapitalize?: string;
+  multiline?: boolean;
+  colors: any;
+}
+
 export default function SignUpScreen({ navigation }: SignUpScreenProps) {
   const [formData, setFormData] = useState({
     name: '',
