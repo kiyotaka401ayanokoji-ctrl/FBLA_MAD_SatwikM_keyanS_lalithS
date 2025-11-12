@@ -412,30 +412,7 @@ export default function AnnouncementsScreen() {
           </View>
         </Animated.View>
 
-        {/* WebView Toggle Button */}
-        <Animated.View entering={FadeInDown.delay(300).springify()} style={styles.webViewToggleContainer}>
-          <TouchableOpacity
-            style={[styles.webViewToggle, {
-              backgroundColor: useWebView ? colors.primary : colors.surface,
-              borderColor: useWebView ? colors.primary : colors.border
-            }]}
-            onPress={toggleWebView}
-            activeOpacity={0.8}
-          >
-            <MaterialIcons
-              name={useWebView ? "web" : "sync"}
-              size={18}
-              color={useWebView ? '#FFFFFF' : colors.primary}
-            />
-            <Text style={[
-              styles.webViewToggleText,
-              { color: useWebView ? '#FFFFFF' : colors.primary }
-            ]}>
-              {useWebView ? 'Real Instagram' : 'Quick Load'}
-            </Text>
-          </TouchableOpacity>
-        </Animated.View>
-
+        
         {/* Posts Feed */}
         {useWebView ? (
           <View style={styles.webViewContainer}>
