@@ -5,6 +5,13 @@ import { LinearGradient } from 'expo-linear-gradient';
 import InstagramFeed from '../components/InstagramFeed';
 import { useTheme } from '../contexts/ThemeContext';
 
+// 🔥 UPDATE THESE POST URLS WHENEVER YOU WANT TO SHOW NEW POSTS!
+const INSTAGRAM_POST_URLS = [
+  'https://www.instagram.com/fbla.nchs/p/DQ72gKLEl73/',
+  'https://www.instagram.com/fbla.nchs/p/DP1X0WJkXig/',
+  'https://www.instagram.com/fbla.nchs/p/DQiEQvRkvjA/',
+];
+
 export default function InstagramFeedScreen() {
   const { colors, isDarkMode } = useTheme();
 
@@ -19,7 +26,7 @@ export default function InstagramFeedScreen() {
       />
       
       <SafeAreaView style={styles.safeArea} edges={['top']}>
-        <InstagramFeed />
+        <InstagramFeed postUrls={INSTAGRAM_POST_URLS} />
       </SafeAreaView>
     </View>
   );

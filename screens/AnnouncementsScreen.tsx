@@ -13,6 +13,19 @@ type TabType = 'national' | 'chapter';
 
 const TAB_STORAGE_KEY = '@announcements_last_tab';
 
+// 🔥 UPDATE THESE POST URLS WHENEVER YOU WANT TO SHOW NEW POSTS!
+const NATIONAL_POSTS = [
+  'https://www.instagram.com/p/EXAMPLE_NATIONAL_1/',
+  'https://www.instagram.com/p/EXAMPLE_NATIONAL_2/',
+  'https://www.instagram.com/p/EXAMPLE_NATIONAL_3/',
+];
+
+const CHAPTER_POSTS = [
+  'https://www.instagram.com/fbla.nchs/p/DQ72gKLEl73/',
+  'https://www.instagram.com/fbla.nchs/p/DP1X0WJkXig/',
+  'https://www.instagram.com/fbla.nchs/p/DQiEQvRkvjA/',
+];
+
 export default function AnnouncementsScreen() {
   const [activeTab, setActiveTab] = useState<TabType>('chapter');
   const { colors, isDarkMode } = useTheme();
@@ -56,6 +69,7 @@ export default function AnnouncementsScreen() {
   };
 
   const instagramHandle = activeTab === 'national' ? '@fbla_pbl' : '@fbla.nchs';
+  const currentPosts = activeTab === 'national' ? NATIONAL_POSTS : CHAPTER_POSTS;
 
   return (
     <View style={styles.container}>
@@ -135,9 +149,9 @@ export default function AnnouncementsScreen() {
           </View>
         </Animated.View>
 
-        {/* Instagram Feed - Platform Safe */}
+        {/* Instagram Feed - Shows REAL embedded posts */}
         <View style={styles.feedContainer}>
-          <InstagramFeed />
+          <InstagramFeed postUrls={currentPosts} key={activeTab} />
         </View>
       </SafeAreaView>
     </View>

@@ -4,8 +4,12 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
 import { SPACING, TYPOGRAPHY, BORDER_RADIUS, SHADOWS } from '../constants/theme';
 
+interface InstagramFeedProps {
+  postUrls: string[];
+}
+
 // Web fallback component - directs users to Instagram
-export default function InstagramFeed() {
+export default function InstagramFeed({ postUrls }: InstagramFeedProps) {
   const { colors } = useTheme();
 
   const handleOpenInstagram = async () => {

@@ -1,27 +1,21 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
-import { SPACING, TYPOGRAPHY, BORDER_RADIUS } from '../constants/theme';
+import { SPACING, TYPOGRAPHY } from '../constants/theme';
 
-// 🔥 UPDATE THESE POST URLS WHENEVER YOU WANT TO SHOW NEW POSTS!
-// Just replace the URLs below with new Instagram post URLs from @fbla.nchs
-const INSTAGRAM_POST_URLS = [
-  'https://www.instagram.com/fbla.nchs/p/DQ72gKLEl73/',
-  'https://www.instagram.com/fbla.nchs/p/DP1X0WJkXig/',
-  'https://www.instagram.com/fbla.nchs/p/DQiEQvRkvjA/',
-];
+interface InstagramFeedProps {
+  postUrls: string[];
+}
 
-const { width } = Dimensions.get('window');
-
-export default function InstagramFeed() {
+export default function InstagramFeed({ postUrls }: InstagramFeedProps) {
   const [loading, setLoading] = useState(true);
   const { colors } = useTheme();
 
   // Generate the combined HTML with all Instagram embeds
   const generateEmbedHTML = () => {
-    const embedBlocks = INSTAGRAM_POST_URLS.map((url) => `
+    const embedBlocks = postUrls.map((url) => `
       <blockquote 
         class="instagram-media" 
         data-instgrm-permalink="${url}"
