@@ -82,7 +82,12 @@ export default function SocialPostCard({ post, index, onLike, onRetweet }: Socia
         await WebBrowser.openBrowserAsync(post.videoUrl);
       } catch (error) {
         console.error('Error opening video:', error);
+        // Fallback: try opening the main post
+        await handleOpenPost();
       }
+    } else {
+      // If no video URL, open the main post
+      await handleOpenPost();
     }
   };
 
