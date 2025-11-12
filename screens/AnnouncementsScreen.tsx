@@ -771,4 +771,31 @@ const styles = StyleSheet.create({
     height: 12,
     borderRadius: BORDER_RADIUS.sm,
   },
+  // WebView styles
+  webViewToggleContainer: {
+    paddingHorizontal: SPACING.lg,
+    marginBottom: SPACING.sm,
+  },
+  webViewToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: SPACING.sm,
+    paddingHorizontal: SPACING.md,
+    borderRadius: BORDER_RADIUS.md,
+    borderWidth: 1.5,
+    gap: SPACING.xs,
+    ...SHADOWS.small,
+  },
+  webViewToggleText: {
+    ...TYPOGRAPHY.bodySmall,
+    fontWeight: '600',
+  },
+  webViewContainer: {
+    flex: 1,
+    marginHorizontal: SPACING.lg,
+    borderRadius: BORDER_RADIUS.lg,
+    overflow: 'hidden',
+    ...SHADOWS.medium,
+  },
 });
