@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Linking } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import InstagramEmbed from '../components/InstagramEmbed';
+import InstagramFeed from '../components/InstagramFeed';
 import { useTheme } from '../contexts/ThemeContext';
 import { SPACING, TYPOGRAPHY, BORDER_RADIUS, SHADOWS } from '../constants/theme';
 
@@ -13,21 +13,8 @@ type TabType = 'national' | 'chapter';
 
 const TAB_STORAGE_KEY = '@announcements_last_tab';
 
-// 🔥 UPDATE THESE POST URLS WHENEVER YOU WANT TO SHOW NEW POSTS!
-const NATIONAL_POSTS = [
-  'https://www.instagram.com/p/EXAMPLE1/',
-  'https://www.instagram.com/p/EXAMPLE2/',
-  'https://www.instagram.com/p/EXAMPLE3/',
-];
-
-const CHAPTER_POSTS = [
-  'https://www.instagram.com/p/EXAMPLE4/',
-  'https://www.instagram.com/p/EXAMPLE5/',
-  'https://www.instagram.com/p/EXAMPLE6/',
-];
-
 export default function AnnouncementsScreen() {
-  const [activeTab, setActiveTab] = useState<TabType>('national');
+  const [activeTab, setActiveTab] = useState<TabType>('chapter');
   const { colors, isDarkMode } = useTheme();
 
   // Load last tab on mount
@@ -68,7 +55,6 @@ export default function AnnouncementsScreen() {
     }
   };
 
-  const currentPosts = activeTab === 'national' ? NATIONAL_POSTS : CHAPTER_POSTS;
   const instagramHandle = activeTab === 'national' ? '@fbla_pbl' : '@fbla.nchs';
 
   return (
@@ -149,35 +135,10 @@ export default function AnnouncementsScreen() {
           </View>
         </Animated.View>
 
-        {/* Instagram Feed */}
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.feedContainer}
-        >
-          {currentPosts.length > 0 ? (
-            currentPosts.map((postUrl, index) => (
-              <Animated.View 
-                key={index}
-                entering={FadeInDown.delay(300 + (index * 100)).springify()}
-              >
-                <InstagramEmbed postUrl={postUrl} />
-              </Animated.View>
-            ))
-          ) : (
-            <Animated.View 
-              entering={FadeIn.delay(400)}
-              style={[styles.emptyState, { backgroundColor: colors.surface }]}
-            >
-              <MaterialIcons name="photo-library" size={64} color={colors.textLight} />
-              <Text style={[styles.emptyTitle, { color: colors.text }]}>
-                No posts yet
-              </Text>
-              <Text style={[styles.emptySubtitle, { color: colors.textLight }]}>
-                Check back soon for updates!
-              </Text>
-            </Animated.View>
-          )}
-        </ScrollView>
+        {/* Instagram Feed - Platform Safe */}
+        <View style={styles.feedContainer}>
+          <InstagramFeed />
+        </View>
       </SafeAreaView>
     </View>
   );
@@ -242,26 +203,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   feedContainer: {
-    paddingHorizontal: SPACING.lg,
-    paddingTop: SPACING.sm,
-    paddingBottom: 100,
-    alignItems: 'center',
-  },
-  emptyState: {
-    width: '100%',
-    padding: SPACING.xl,
-    borderRadius: BORDER_RADIUS.xl,
-    alignItems: 'center',
-    marginTop: SPACING.xxl,
-    ...SHADOWS.medium,
-  },
-  emptyTitle: {
-    ...TYPOGRAPHY.h3,
-    marginTop: SPACING.md,
-    marginBottom: SPACING.xs,
-  },
-  emptySubtitle: {
-    ...TYPOGRAPHY.body,
-    textAlign: 'center',
+    flex: 1,
   },
 });
