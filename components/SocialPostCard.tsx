@@ -98,9 +98,13 @@ export default function SocialPostCard({ post, index, onLike, onRetweet }: Socia
         tint={isDarkMode ? 'dark' : 'light'}
         style={[styles.container, SHADOWS.medium]}
       >
-        <TouchableOpacity 
+        <TouchableOpacity
           activeOpacity={0.9}
           onPress={handleOpenPost}
+          accessible={true}
+          accessibilityLabel={`Instagram post by ${post.username}: ${post.content.substring(0, 100)}...`}
+          accessibilityHint="Double tap to open post on Instagram"
+          accessibilityRole="button"
         >
           <View style={[styles.cardInner, { 
             borderColor: isDarkMode ? 'rgba(90, 159, 238, 0.4)' : 'rgba(255, 255, 255, 0.7)', 
