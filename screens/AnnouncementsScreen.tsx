@@ -83,7 +83,7 @@ export default function AnnouncementsScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [useWebView, setUseWebView] = useState(false); // Toggle for WebView fallback
+  const [useWebView, setUseWebView] = useState(true); // Enable WebView by default for real Instagram
   const [webViewKey, setWebViewKey] = useState(0); // For WebView refresh
   const webViewRef = useRef<any>(null);
   const { colors, isDarkMode } = useTheme();
