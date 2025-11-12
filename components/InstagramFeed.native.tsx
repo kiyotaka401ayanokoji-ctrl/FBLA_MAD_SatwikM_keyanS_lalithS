@@ -33,9 +33,9 @@ export default function InstagramFeed({ postUrls }: InstagramFeedProps) {
 
     for (const url of postUrls) {
       try {
-        // Use Instagram's oEmbed API to get post data
+        // Use Instagram's PUBLIC oEmbed API (no auth required!)
         const response = await fetch(
-          `https://graph.facebook.com/v12.0/instagram_oembed?url=${encodeURIComponent(url)}&access_token=YOUR_TOKEN&fields=thumbnail_url,author_name,title`
+          `https://api.instagram.com/oembed/?url=${encodeURIComponent(url)}`
         );
         
         if (response.ok) {
@@ -47,6 +47,7 @@ export default function InstagramFeed({ postUrls }: InstagramFeedProps) {
             url: url,
           });
         } else {
+          console.log('API response not OK for:', url);
           // Fallback if API fails
           fetchedPosts.push({ url });
         }
@@ -102,6 +103,9 @@ export default function InstagramFeed({ postUrls }: InstagramFeedProps) {
           ) : (
             <View style={[styles.placeholderImage, { backgroundColor: colors.backgroundSecondary }]}>
               <MaterialIcons name="photo" size={64} color={colors.textLight} />
+              <Text style={[styles.placeholderText, { color: colors.textLight }]}>
+                Tap to view on Instagram
+              </Text>
             </View>
           )}
           
@@ -116,7 +120,7 @@ export default function InstagramFeed({ postUrls }: InstagramFeedProps) {
             {post.title && (
               <Text 
                 style={[styles.postTitle, { color: colors.textSecondary }]}
-                numberOfLines={2}
+                numberOfLines={3}
               >
                 {post.title}
               </Text>
@@ -125,7 +129,7 @@ export default function InstagramFeed({ postUrls }: InstagramFeedProps) {
             <View style={styles.postFooter}>
               <MaterialIcons name="open-in-new" size={16} color={colors.primary} />
               <Text style={[styles.viewText, { color: colors.primary }]}>
-                View on Instagram
+                Tap to view full post on Instagram
               </Text>
             </View>
           </View>
@@ -168,6 +172,11 @@ const styles = StyleSheet.create({
     height: CARD_WIDTH,
     justifyContent: 'center',
     alignItems: 'center',
+    gap: SPACING.sm,
+  },
+  placeholderText: {
+    ...TYPOGRAPHY.bodySmall,
+    marginTop: SPACING.xs,
   },
   postContent: {
     padding: SPACING.md,
