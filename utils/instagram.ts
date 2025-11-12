@@ -690,7 +690,6 @@ async function fetchInstagramEmbedData(instagramHandle: string, username: string
         'Cache-Control': 'no-cache',
         'Pragma': 'no-cache',
       },
-      signal: AbortSignal.timeout(12000),
     });
 
     console.log(`📊 Embed API response: ${response.status}`);
