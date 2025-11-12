@@ -386,6 +386,15 @@ export default function InstagramWebView({
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
+      {/* Glassmorphic background overlay */}
+      <View style={styles.glassOverlay}>
+        <BlurView
+          intensity={isDarkMode ? 20 : 40}
+          tint={isDarkMode ? 'dark' : 'light'}
+          style={StyleSheet.absoluteFillObject}
+        />
+      </View>
+
       <WebView
         ref={webViewRef}
         source={{ html: widgetHTML }}
