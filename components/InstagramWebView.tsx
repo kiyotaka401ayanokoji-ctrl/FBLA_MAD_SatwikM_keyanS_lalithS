@@ -307,6 +307,10 @@ export default function InstagramWebView({
         onDataExtracted(socialPosts);
         setIsLoading(false);
         setHasError(false);
+        // Clear timeout if data loads successfully
+        if (timeoutRef.current) {
+          clearTimeout(timeoutRef.current);
+        }
       } else if (message.type === 'error') {
         console.error('❌ Instagram WebView error:', message.error);
         onError(message.error);
