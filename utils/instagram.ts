@@ -1,7 +1,7 @@
 import { SocialPost } from '../types';
 
 // Format timestamp to relative time
-function getRelativeTime(timestamp: number): string {
+export function getRelativeTime(timestamp: number): string {
   const now = Date.now();
   const diffInSeconds = Math.floor((now - timestamp * 1000) / 1000);
 
@@ -9,7 +9,7 @@ function getRelativeTime(timestamp: number): string {
   if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
   if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
   if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)}d ago`;
-  
+
   const date = new Date(timestamp * 1000);
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
