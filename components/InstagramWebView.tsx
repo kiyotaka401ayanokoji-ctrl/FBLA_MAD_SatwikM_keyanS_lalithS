@@ -30,7 +30,7 @@ export default function InstagramWebView({
   const { colors, isDarkMode } = useTheme();
 
   // Set timeout for widget loading
-  React.useEffect(() => {
+  useEffect(() => {
     timeoutRef.current = setTimeout(() => {
       if (isLoading) {
         console.log('⏰ Widget loading timeout reached');
