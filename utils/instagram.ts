@@ -169,7 +169,6 @@ async function loadYourSociableKitWidget(username: string): Promise<SocialPost[]
         'Accept': 'application/javascript, text/javascript, */*',
         'Referer': 'https://widgets.sociablekit.com/',
       },
-      signal: AbortSignal.timeout(15000),
     });
 
     console.log(`📊 Your widget response: ${response.status}`);
