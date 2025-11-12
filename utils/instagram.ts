@@ -1004,7 +1004,6 @@ async function fetchInstagramBasicAPI(instagramHandle: string, username: string)
 
     const response = await fetch(apiUrl, {
       method: 'GET',
-      signal: AbortSignal.timeout(8000),
     });
 
     if (!response.ok) {
