@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialIcons } from '@expo/vector-icons';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
-import { useAuth } from '../contexts/AuthContext';
+import { useSupabaseAuth } from '../contexts/SupabaseAuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { SPACING, TYPOGRAPHY, BORDER_RADIUS } from '../constants/theme';
 
@@ -19,7 +19,7 @@ export default function SignInScreen({ navigation }: SignInScreenProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({ email: '', password: '' });
   
-  const { signIn } = useAuth();
+  const { signIn } = useSupabaseAuth();
   const { colors } = useTheme();
 
   const validateEmail = (email: string) => {

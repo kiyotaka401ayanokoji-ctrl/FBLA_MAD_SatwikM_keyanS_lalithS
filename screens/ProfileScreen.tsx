@@ -5,12 +5,12 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import * as ImagePicker from 'expo-image-picker';
-import { useAuth } from '../contexts/AuthContext';
+import { useSupabaseAuth } from '../contexts/SupabaseAuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { SPACING, TYPOGRAPHY, BORDER_RADIUS, SHADOWS } from '../constants/theme';
 
 export default function ProfileScreen() {
-  const { user, signOut } = useAuth();
+  const { user, signOut, updateProfile } = useSupabaseAuth();
   const { colors, isDarkMode, toggleTheme } = useTheme();
   const [isEditing, setIsEditing] = useState(false);
   const [profileImage, setProfileImage] = useState<string | null>(null);
@@ -24,9 +24,20 @@ export default function ProfileScreen() {
     memberSince: '',
   });
 
-  const handleSave = () => {
-    setIsEditing(false);
-    Alert.alert('Success', 'Profile updated successfully!');
+  const handleSave = async () => {
+    try {
+      await updateProfile({
+        name: profile.name,
+        chapter: profile.chapter,
+        position: profile.position,
+        phone: profile.phone,
+        bio: profile.bio,
+      });
+      setIsEditing(false);
+      Alert.alert('Success', 'Profile updated successfully!');
+    } catch (error: any) {
+      Alert.alert('Error', error.message || 'Failed to update profile');
+    }
   };
 
   const handleSignOut = () => {

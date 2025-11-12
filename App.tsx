@@ -9,7 +9,7 @@ import { Platform } from 'react-native';
 import { BlurView } from 'expo-blur';
 
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { SupabaseAuthProvider, useSupabaseAuth } from './contexts/SupabaseAuthContext';
 
 import SplashScreen from './screens/SplashScreen';
 import SignInScreen from './screens/SignInScreen';
@@ -152,7 +152,7 @@ function MainStack() {
 
 function AppContent() {
   const [showSplash, setShowSplash] = useState(true);
-  const { user, isLoading } = useAuth();
+  const { user, isLoading } = useSupabaseAuth();
   const { isDarkMode } = useTheme();
 
   if (showSplash) {
@@ -177,9 +177,9 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <ThemeProvider>
-        <AuthProvider>
+        <SupabaseAuthProvider>
           <AppContent />
-        </AuthProvider>
+        </SupabaseAuthProvider>
       </ThemeProvider>
     </SafeAreaProvider>
   );
