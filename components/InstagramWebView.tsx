@@ -316,6 +316,10 @@ export default function InstagramWebView({
         onError(message.error);
         setIsLoading(false);
         setHasError(true);
+        // Clear timeout on error
+        if (timeoutRef.current) {
+          clearTimeout(timeoutRef.current);
+        }
       }
     } catch (error) {
       console.error('❌ Error parsing WebView message:', error);
