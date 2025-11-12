@@ -86,51 +86,201 @@ async function fetchSociableKitInstagram(instagramHandle: string, username: stri
   try {
     console.log(`🎯 Fetching Instagram data via SociableKit widget for @${instagramHandle}...`);
 
-    // SociableKit widget endpoint - fetches the widget HTML
-    const widgetUrl = `https://widgets.sociablekit.com/instagram-stories/widget.js`;
+    // Try multiple SociableKit endpoints that might work
+    const endpoints = [
+      `https://widgets.sociablekit.com/instagram-stories/widget.js?embed_id=25621210`,
+      `https://widgets.sociablekit.com/instagram-feed/widget.js?username=${instagramHandle}`,
+      `https://widgets.sociablekit.com/instagram/widget.js?username=${instagramHandle}`,
+      `https://cdn.sociablekit.com/instagram-widget/${instagramHandle}.js`
+    ];
 
-    // We need to fetch the widget data by calling the SociableKit API
-    // The widget loads data from SociableKit's servers which have Instagram API access
-    const apiUrl = `https://widgets.sociablekit.com/instagram-feed/widget?username=${instagramHandle}&limit=12`;
+    for (const endpoint of endpoints) {
+      console.log(`📡 Trying SociableKit endpoint: ${endpoint}`);
 
-    console.log(`📡 Calling SociableKit API: ${apiUrl}`);
+      try {
+        const response = await fetch(endpoint, {
+          method: 'GET',
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.1',
+            'Accept': 'application/javascript, text/javascript, */*',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'Referer': 'https://widgets.sociablekit.com/',
+          },
+          signal: AbortSignal.timeout(10000),
+        });
 
-    const response = await fetch(apiUrl, {
-      method: 'GET',
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.1',
-        'Accept': 'application/json, text/plain, */*',
-        'Accept-Language': 'en-US,en;q=0.9',
-        'Referer': 'https://widgets.sociablekit.com/',
-        'Origin': 'https://widgets.sociablekit.com',
-      },
-      signal: AbortSignal.timeout(15000),
-    });
+        console.log(`📊 Endpoint response: ${response.status}`);
 
-    console.log(`📊 SociableKit response: ${response.status}`);
+        if (response.ok) {
+          const jsText = await response.text();
+          console.log(`📄 Got JS from SociableKit: ${jsText.length} characters`);
 
-    if (!response.ok) {
-      console.log(`❌ SociableKit API failed: ${response.status} ${response.statusText}`);
-      return [];
+          // Parse the JavaScript for Instagram data
+          const posts = parseSociableKitJS(jsText, username);
+          if (posts.length > 0) {
+            console.log(`✅ SUCCESS: Got ${posts.length} posts from ${endpoint}`);
+            return posts;
+          }
+        }
+      } catch (endpointError) {
+        console.log(`⚠️ Endpoint ${endpoint} failed:`, endpointError instanceof Error ? endpointError.message : 'Unknown error');
+      }
     }
 
-    // Try to parse as JSON first
-    try {
-      const jsonData = await response.json();
-      console.log(`✅ Got JSON data from SociableKit!`);
-      return parseSociableKitData(jsonData, username);
-    } catch (jsonError) {
-      console.log(`⚠️ Not JSON response, trying HTML parsing...`);
-
-      // If not JSON, try HTML parsing
-      const htmlText = await response.text();
-      console.log(`📄 Got HTML from SociableKit: ${htmlText.length} characters`);
-
-      return parseSociableKitHTML(htmlText, username);
+    // Try getting the widget HTML directly
+    console.log(`🌐 Trying widget HTML approach...`);
+    const htmlPosts = await fetchSociableKitHTML(instagramHandle, username);
+    if (htmlPosts.length > 0) {
+      return htmlPosts;
     }
+
+    console.log(`❌ All SociableKit methods failed for @${instagramHandle}`);
+    return [];
 
   } catch (error) {
     console.error(`❌ Error fetching from SociableKit:`, error instanceof Error ? error.message : 'Unknown error');
+    return [];
+  }
+}
+
+// Parse SociableKit JavaScript for Instagram data
+function parseSociableKitJS(jsText: string, username: string): SocialPost[] {
+  try {
+    const posts: SocialPost[] = [];
+    const isNational = username === 'fbla_national';
+    const displayName = isNational ? 'FBLA National' : 'FBLA NCHS';
+    const handle = `@${username}`;
+
+    console.log(`🔍 Parsing SociableKit JavaScript for Instagram data...`);
+
+    // Look for data patterns in the JavaScript
+    const dataPatterns = [
+      /"data":\s*(\[.+?\])/g,
+      /"items":\s*(\[.+?\])/g,
+      /"posts":\s*(\[.+?\])/g,
+      /var\s+data\s*=\s*(\[.+?\]);/g,
+      /let\s+posts\s*=\s*(\[.+?\]);/g,
+      /const\s+media\s*=\s*(\[.+?\]);/g
+    ];
+
+    for (const pattern of dataPatterns) {
+      let match;
+      while ((match = pattern.exec(jsText)) !== null) {
+        try {
+          const jsonData = match[1];
+          const data = JSON.parse(jsonData);
+          console.log(`✅ Found data in SociableKit JS!`);
+
+          const parsedPosts = parseSociableKitData(data, username);
+          posts.push(...parsedPosts);
+        } catch (parseError) {
+          console.log(`⚠️ Failed to parse JS data:`, parseError instanceof Error ? parseError.message : 'Unknown error');
+        }
+      }
+    }
+
+    // Look for individual Instagram post objects
+    const postPatterns = [
+      /{[^}]*"caption"[^}]*"image_url"[^}]*}/g,
+      /{[^}]*"text"[^}]*"url"[^}]*}/g,
+      /{[^}]*"description"[^}]*"media"[^}]*}/g
+    ];
+
+    for (const pattern of postPatterns) {
+      let match;
+      while ((match = pattern.exec(jsText)) !== null) {
+        try {
+          const postData = JSON.parse(match[0]);
+          const post = convertSociableKitPost(postData, username, displayName, handle);
+          if (post) {
+            posts.push(post);
+            console.log(`✅ Found individual post in JS: ${post.content.substring(0, 30)}...`);
+          }
+        } catch (parseError) {
+          console.log(`⚠️ Failed to parse individual post:`, parseError instanceof Error ? parseError.message : 'Unknown error');
+        }
+      }
+    }
+
+    // Remove duplicates
+    const uniquePosts = posts.filter((post, index, self) =>
+      index === self.findIndex(p => p.id === post.id)
+    ).slice(0, 12);
+
+    console.log(`🎉 Successfully extracted ${uniquePosts.length} posts from SociableKit JS!`);
+    return uniquePosts;
+
+  } catch (error) {
+    console.error('❌ Error parsing SociableKit JS:', error);
+    return [];
+  }
+}
+
+// Convert SociableKit post format to SocialPost
+function convertSociableKitPost(postData: any, username: string, displayName: string, handle: string): SocialPost | null {
+  try {
+    const caption = postData.caption || postData.text || postData.description || '';
+    const imageUrl = postData.image_url || postData.media_url || postData.url || postData.src;
+    const videoUrl = postData.video_url || postData.video;
+    const timestamp = postData.timestamp || postData.created_time || postData.date;
+    const likes = postData.likes || postData.like_count || 0;
+    const comments = postData.comments || postData.comment_count || 0;
+    const postId = postData.id || postData.shortcode || `sk_${username}_${Date.now()}`;
+
+    if (caption && caption.trim().length > 5) {
+      return {
+        id: postId,
+        username: displayName,
+        handle,
+        content: caption.length > 280 ? caption.substring(0, 277) + '...' : caption.trim(),
+        timestamp: timestamp ? getRelativeTime(new Date(timestamp).getTime() / 1000) : 'Just now',
+        likes: likes,
+        retweets: 0,
+        replies: comments,
+        isLiked: false,
+        isRetweeted: false,
+        images: imageUrl ? [imageUrl] : undefined,
+        videoThumbnail: videoUrl && imageUrl ? imageUrl : undefined,
+        videoUrl: videoUrl,
+      };
+    }
+
+    return null;
+  } catch (error) {
+    console.error('❌ Error converting SociableKit post:', error);
+    return null;
+  }
+}
+
+// Fetch SociableKit widget HTML
+async function fetchSociableKitHTML(instagramHandle: string, username: string): Promise<SocialPost[]> {
+  try {
+    console.log(`🌐 Trying SociableKit HTML widget for @${instagramHandle}...`);
+
+    // Try to get the widget HTML page
+    const htmlUrl = `https://widgets.sociablekit.com/instagram-stories/widget?embed_id=25621210`;
+
+    const response = await fetch(htmlUrl, {
+      method: 'GET',
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+      },
+      signal: AbortSignal.timeout(10000),
+    });
+
+    if (!response.ok) {
+      console.log(`❌ HTML widget failed: ${response.status}`);
+      return [];
+    }
+
+    const html = await response.text();
+    console.log(`📄 Got SociableKit HTML: ${html.length} characters`);
+
+    return parseSociableKitHTML(html, username);
+
+  } catch (error) {
+    console.error('❌ Error fetching SociableKit HTML:', error instanceof Error ? error.message : 'Unknown error');
     return [];
   }
 }
