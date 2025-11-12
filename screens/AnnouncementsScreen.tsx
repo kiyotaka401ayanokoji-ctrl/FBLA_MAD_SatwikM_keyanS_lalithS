@@ -248,7 +248,61 @@ export default function AnnouncementsScreen() {
 
   const handleRefresh = async () => {
     setRefreshing(true);
-    await fetchAllPosts();
+    if (useWebView) {
+      // Refresh WebView by incrementing key
+      setWebViewKey(prev => prev + 1);
+    } else {
+      await fetchAllPosts();
+    }
+  };
+
+  // Handle Instagram data from WebView
+  const handleInstagramData = (username: string, posts: SocialPost[]) => {
+    console.log(`📱 Received ${posts.length} Instagram posts from WebView for @${username}`);
+
+    if (username === 'fbla_national') {
+      setNationalPosts(posts);
+      cacheData(CACHE_KEY_NATIONAL, posts);
+    } else if (username === 'fbla.nchs') {
+      setChapterPosts(posts);
+      cacheData(CACHE_KEY_CHAPTER, posts);
+    }
+
+    setLoading(false);
+    setRefreshing(false);
+    setError(null);
+  };
+
+  // Handle Instagram WebView error
+  const handleInstagramError = (username: string, errorMessage: string) => {
+    console.error(`❌ Instagram WebView error for @${username}:`, errorMessage);
+
+    // Set error but don't disable WebView unless it's a critical error
+    if (errorMessage.includes('critical') || errorMessage.includes('failed')) {
+      setError(errorMessage);
+      // Fall back to regular fetching
+      setUseWebView(false);
+      fetchAllPosts();
+    } else {
+      // Show error but keep WebView active
+      setError(errorMessage);
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  // Toggle WebView mode
+  const toggleWebView = () => {
+    setUseWebView(!useWebView);
+    setWebViewKey(prev => prev + 1);
+    if (!useWebView) {
+      // When enabling WebView, clear error and set loading
+      setError(null);
+      setLoading(true);
+    } else {
+      // When disabling WebView, fetch normally
+      fetchAllPosts();
+    }
   };
 
   const handleLike = (id: string) => {
