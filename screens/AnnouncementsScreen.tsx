@@ -270,33 +270,9 @@ export default function AnnouncementsScreen() {
   // Handle Instagram WebView error
   const handleInstagramError = (username: string, errorMessage: string) => {
     console.error(`❌ Instagram WebView error for @${username}:`, errorMessage);
-
-    // Set error but don't disable WebView unless it's a critical error
-    if (errorMessage.includes('critical') || errorMessage.includes('failed')) {
-      setError(errorMessage);
-      // Fall back to regular fetching
-      setUseWebView(false);
-      fetchAllPosts();
-    } else {
-      // Show error but keep WebView active
-      setError(errorMessage);
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
-
-  // Toggle WebView mode
-  const toggleWebView = () => {
-    setUseWebView(!useWebView);
-    setWebViewKey(prev => prev + 1);
-    if (!useWebView) {
-      // When enabling WebView, clear error and set loading
-      setError(null);
-      setLoading(true);
-    } else {
-      // When disabling WebView, fetch normally
-      fetchAllPosts();
-    }
+    setError(errorMessage);
+    setLoading(false);
+    setRefreshing(false);
   };
 
   const handleLike = (id: string) => {
