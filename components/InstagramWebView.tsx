@@ -404,6 +404,16 @@ export default function InstagramWebView({
         originWhitelist={['*']}
         mixedContentMode="compatibility"
         allowsFullscreenVideo={true}
+        // Performance optimizations
+        cacheEnabled={true}
+        cacheMode="LOAD_DEFAULT"
+        decelerationRate="normal"
+        bounces={false}
+        scrollEnabled={false}
+        // Memory optimizations
+        removeClippedSubviews={true}
+        androidLayerType="hardware"
+        androidHybridComposition={true}
       />
 
       {isLoading && (
