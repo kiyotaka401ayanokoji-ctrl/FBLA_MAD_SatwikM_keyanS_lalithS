@@ -1,94 +1,90 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, Platform } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity, Linking, Dimensions } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
-import { SPACING, TYPOGRAPHY } from '../constants/theme';
+import { SPACING, TYPOGRAPHY, BORDER_RADIUS, SHADOWS } from '../constants/theme';
 
 interface InstagramFeedProps {
   postUrls: string[];
 }
 
-// Web version - uses HTML iframes to embed Instagram posts
+const { width } = Dimensions.get('window');
+const POST_HEIGHT = 700;
+
 export default function InstagramFeed({ postUrls }: InstagramFeedProps) {
+  const [loadingStates, setLoadingStates] = useState<{ [key: number]: boolean }>(
+    postUrls.reduce((acc, _, index) => ({ ...acc, [index]: true }), {})
+  );
   const { colors } = useTheme();
-  const [scriptsLoaded, setScriptsLoaded] = useState(false);
 
-  useEffect(() => {
-    if (Platform.OS === 'web') {
-      // Load Instagram embed script
-      const script = document.createElement('script');
-      script.src = '//www.instagram.com/embed.js';
-      script.async = true;
-      script.onload = () => {
-        setScriptsLoaded(true);
-        // Process embeds after script loads
-        if ((window as any).instgrm) {
-          (window as any).instgrm.Embeds.process();
-        }
-      };
-      document.body.appendChild(script);
-
-      return () => {
-        document.body.removeChild(script);
-      };
+  const handleOpenPost = async (url: string) => {
+    try {
+      await Linking.openURL(url);
+    } catch (error) {
+      console.error('Error opening Instagram post:', error);
     }
-  }, []);
+  };
 
-  // Re-process embeds when posts change
-  useEffect(() => {
-    if (Platform.OS === 'web' && scriptsLoaded && (window as any).instgrm) {
-      setTimeout(() => {
-        (window as any).instgrm.Embeds.process();
-      }, 100);
+  // Extract post ID from URL for embed
+  const getEmbedUrl = (url: string) => {
+    const match = url.match(/\/p\/([^\/]+)/);
+    if (match) {
+      return `https://www.instagram.com/p/${match[1]}/embed/`;
     }
-  }, [postUrls, scriptsLoaded]);
+    return null;
+  };
 
   return (
-    <View style={styles.container}>
-      {/* Header */}
-      <View style={[styles.header, { backgroundColor: colors.surface }]}>
-        <MaterialIcons name="camera-alt" size={24} color={colors.primary} />
-        <Text style={[styles.headerText, { color: colors.text }]}>
-          Follow us on Instagram @fbla.nchs 📸
-        </Text>
-      </View>
-
-      {/* Instagram Feed */}
-      <ScrollView 
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={true}
-      >
-        {postUrls.map((url, index) => (
-          <View key={`${url}-${index}`} style={styles.postContainer}>
-            <div
-              dangerouslySetInnerHTML={{
-                __html: `
-                  <blockquote 
-                    class="instagram-media" 
-                    data-instgrm-permalink="${url}"
-                    data-instgrm-version="14"
-                    style="
-                      background:#FFF; 
-                      border:0; 
-                      border-radius:12px; 
-                      box-shadow:0 0 1px 0 rgba(0,0,0,0.5),0 1px 10px 0 rgba(0,0,0,0.15); 
-                      margin: 1px; 
-                      max-width:540px; 
-                      min-width:326px; 
-                      padding:0; 
-                      width:99.375%; 
-                      width:-webkit-calc(100% - 2px); 
-                      width:calc(100% - 2px);
-                    ">
-                  </blockquote>
-                `
-              }}
-            />
+    <ScrollView 
+      style={styles.container}
+      contentContainerStyle={styles.scrollContent}
+      showsVerticalScrollIndicator={true}
+    >
+      {postUrls.map((url, index) => {
+        const embedUrl = getEmbedUrl(url);
+        
+        return (
+          <View key={index} style={styles.postContainer}>
+            {loadingStates[index] && (
+              <View style={[styles.loadingContainer, { backgroundColor: colors.surface }]}>
+                <ActivityIndicator size="large" color={colors.primary} />
+                <Text style={[styles.loadingText, { color: colors.textLight }]}>
+                  Loading post...
+                </Text>
+              </View>
+            )}
+            
+            {embedUrl && (
+              <iframe
+                src={embedUrl}
+                style={{
+                  width: '100%',
+                  height: POST_HEIGHT,
+                  border: 'none',
+                  borderRadius: BORDER_RADIUS.xl,
+                  overflow: 'hidden',
+                  opacity: loadingStates[index] ? 0 : 1,
+                }}
+                onLoad={() => {
+                  setLoadingStates(prev => ({ ...prev, [index]: false }));
+                }}
+                scrolling="no"
+                allowTransparency={true}
+              />
+            )}
+            
+            <TouchableOpacity
+              style={[styles.openButton, { backgroundColor: colors.primary }]}
+              onPress={() => handleOpenPost(url)}
+              activeOpacity={0.8}
+            >
+              <MaterialIcons name="open-in-new" size={18} color="#FFFFFF" />
+              <Text style={styles.openButtonText}>Open in Instagram</Text>
+            </TouchableOpacity>
           </View>
-        ))}
-      </ScrollView>
-    </View>
+        );
+      })}
+    </ScrollView>
   );
 }
 
@@ -96,30 +92,45 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: SPACING.lg,
-    paddingVertical: SPACING.md,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0, 0, 0, 0.1)',
-  },
-  headerText: {
-    ...TYPOGRAPHY.bodyMedium,
-    fontWeight: '600',
-    marginLeft: SPACING.sm,
-    flex: 1,
-  },
-  scrollView: {
-    flex: 1,
-  },
   scrollContent: {
     padding: SPACING.md,
+    paddingBottom: SPACING.xxl,
     alignItems: 'center',
   },
   postContainer: {
     width: '100%',
-    maxWidth: 540,
-    marginBottom: SPACING.lg,
+    maxWidth: 500,
+    marginBottom: SPACING.xl,
+    borderRadius: BORDER_RADIUS.xl,
+    overflow: 'hidden',
+    ...SHADOWS.large,
+  },
+  loadingContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1,
+    borderRadius: BORDER_RADIUS.xl,
+    ...SHADOWS.medium,
+  },
+  loadingText: {
+    ...TYPOGRAPHY.body,
+    marginTop: SPACING.sm,
+  },
+  openButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: SPACING.sm,
+    gap: SPACING.xs,
+  },
+  openButtonText: {
+    ...TYPOGRAPHY.bodyMedium,
+    color: '#FFFFFF',
+    fontWeight: '600',
   },
 });

@@ -1,118 +1,137 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
-import { WebView } from 'react-native-webview';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, Image, ActivityIndicator, TouchableOpacity, Linking, Dimensions } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
-import { SPACING, TYPOGRAPHY } from '../constants/theme';
+import { SPACING, TYPOGRAPHY, BORDER_RADIUS, SHADOWS } from '../constants/theme';
 
 interface InstagramFeedProps {
   postUrls: string[];
 }
 
+interface PostData {
+  thumbnail_url?: string;
+  author_name?: string;
+  title?: string;
+  url: string;
+}
+
+const { width } = Dimensions.get('window');
+const CARD_WIDTH = width - (SPACING.lg * 2);
+
 export default function InstagramFeed({ postUrls }: InstagramFeedProps) {
+  const [posts, setPosts] = useState<PostData[]>([]);
   const [loading, setLoading] = useState(true);
   const { colors } = useTheme();
 
-  // Generate the combined HTML with all Instagram embeds
-  const generateEmbedHTML = () => {
-    const embedBlocks = postUrls.map((url) => `
-      <blockquote 
-        class="instagram-media" 
-        data-instgrm-permalink="${url}"
-        data-instgrm-version="14"
-        style="
-          background:#FFF; 
-          border:0; 
-          border-radius:12px; 
-          box-shadow:0 0 1px 0 rgba(0,0,0,0.5),0 1px 10px 0 rgba(0,0,0,0.15); 
-          margin: 16px auto; 
-          max-width:540px; 
-          min-width:326px; 
-          padding:0; 
-          width:99.375%; 
-          width:-webkit-calc(100% - 2px); 
-          width:calc(100% - 2px);
-        ">
-      </blockquote>
-    `).join('\n');
+  useEffect(() => {
+    fetchPostData();
+  }, [postUrls]);
 
-    return `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-          <style>
-            * {
-              margin: 0;
-              padding: 0;
-              box-sizing: border-box;
-            }
-            body {
-              background: transparent;
-              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-              padding: 8px;
-              overflow-x: hidden;
-            }
-            .instagram-feed-container {
-              width: 100%;
-              display: flex;
-              flex-direction: column;
-              align-items: center;
-              padding-bottom: 40px;
-            }
-            blockquote {
-              margin: 16px 0 !important;
-            }
-          </style>
-        </head>
-        <body>
-          <div class="instagram-feed-container">
-            ${embedBlocks}
-          </div>
-          <script async src="//www.instagram.com/embed.js"></script>
-        </body>
-      </html>
-    `;
+  const fetchPostData = async () => {
+    setLoading(true);
+    const fetchedPosts: PostData[] = [];
+
+    for (const url of postUrls) {
+      try {
+        // Use Instagram's oEmbed API to get post data
+        const response = await fetch(
+          `https://graph.facebook.com/v12.0/instagram_oembed?url=${encodeURIComponent(url)}&access_token=YOUR_TOKEN&fields=thumbnail_url,author_name,title`
+        );
+        
+        if (response.ok) {
+          const data = await response.json();
+          fetchedPosts.push({
+            thumbnail_url: data.thumbnail_url,
+            author_name: data.author_name,
+            title: data.title,
+            url: url,
+          });
+        } else {
+          // Fallback if API fails
+          fetchedPosts.push({ url });
+        }
+      } catch (error) {
+        console.error('Error fetching post data:', error);
+        // Add post with just URL as fallback
+        fetchedPosts.push({ url });
+      }
+    }
+
+    setPosts(fetchedPosts);
+    setLoading(false);
   };
 
-  return (
-    <View style={styles.container}>
-      {/* Header */}
-      <View style={[styles.header, { backgroundColor: colors.surface }]}>
-        <MaterialIcons name="camera-alt" size={24} color={colors.primary} />
-        <Text style={[styles.headerText, { color: colors.text }]}>
-          Follow us on Instagram @fbla.nchs 📸
+  const handleOpenPost = async (url: string) => {
+    try {
+      await Linking.openURL(url);
+    } catch (error) {
+      console.error('Error opening Instagram post:', error);
+    }
+  };
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={[styles.loadingText, { color: colors.textLight }]}>
+          Loading posts...
         </Text>
       </View>
+    );
+  }
 
-      {/* Instagram Feed WebView */}
-      <View style={styles.webviewContainer}>
-        {loading && (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={colors.primary} />
-            <Text style={[styles.loadingText, { color: colors.textLight }]}>
-              Loading posts...
-            </Text>
+  return (
+    <ScrollView 
+      style={styles.container}
+      contentContainerStyle={styles.scrollContent}
+      showsVerticalScrollIndicator={true}
+    >
+      {posts.map((post, index) => (
+        <TouchableOpacity
+          key={index}
+          style={[styles.postCard, { backgroundColor: colors.surface }]}
+          onPress={() => handleOpenPost(post.url)}
+          activeOpacity={0.9}
+        >
+          {post.thumbnail_url ? (
+            <Image 
+              source={{ uri: post.thumbnail_url }}
+              style={styles.postImage}
+              resizeMode="cover"
+            />
+          ) : (
+            <View style={[styles.placeholderImage, { backgroundColor: colors.backgroundSecondary }]}>
+              <MaterialIcons name="photo" size={64} color={colors.textLight} />
+            </View>
+          )}
+          
+          <View style={styles.postContent}>
+            <View style={styles.postHeader}>
+              <MaterialIcons name="camera-alt" size={20} color={colors.primary} />
+              <Text style={[styles.authorName, { color: colors.text }]}>
+                {post.author_name || '@fbla.nchs'}
+              </Text>
+            </View>
+            
+            {post.title && (
+              <Text 
+                style={[styles.postTitle, { color: colors.textSecondary }]}
+                numberOfLines={2}
+              >
+                {post.title}
+              </Text>
+            )}
+            
+            <View style={styles.postFooter}>
+              <MaterialIcons name="open-in-new" size={16} color={colors.primary} />
+              <Text style={[styles.viewText, { color: colors.primary }]}>
+                View on Instagram
+              </Text>
+            </View>
           </View>
-        )}
-        <WebView
-          source={{ html: generateEmbedHTML() }}
-          style={[styles.webview, { opacity: loading ? 0 : 1 }]}
-          onLoadEnd={() => setLoading(false)}
-          onError={(error) => {
-            console.error('WebView error:', error);
-            setLoading(false);
-          }}
-          showsVerticalScrollIndicator={true}
-          showsHorizontalScrollIndicator={false}
-          javaScriptEnabled={true}
-          domStorageEnabled={true}
-          startInLoadingState={false}
-          scrollEnabled={true}
-          bounces={true}
-        />
-      </View>
-    </View>
+        </TouchableOpacity>
+      ))}
+    </ScrollView>
   );
 }
 
@@ -120,40 +139,61 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: SPACING.lg,
-    paddingVertical: SPACING.md,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0, 0, 0, 0.1)',
-  },
-  headerText: {
-    ...TYPOGRAPHY.bodyMedium,
-    fontWeight: '600',
-    marginLeft: SPACING.sm,
-    flex: 1,
-  },
-  webviewContainer: {
-    flex: 1,
-    position: 'relative',
-  },
-  webview: {
-    flex: 1,
-    backgroundColor: 'transparent',
+  scrollContent: {
+    padding: SPACING.lg,
+    paddingBottom: SPACING.xxl,
   },
   loadingContainer: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    zIndex: 1,
   },
   loadingText: {
     ...TYPOGRAPHY.body,
     marginTop: SPACING.sm,
+  },
+  postCard: {
+    width: CARD_WIDTH,
+    borderRadius: BORDER_RADIUS.xl,
+    marginBottom: SPACING.lg,
+    overflow: 'hidden',
+    ...SHADOWS.large,
+  },
+  postImage: {
+    width: '100%',
+    height: CARD_WIDTH,
+  },
+  placeholderImage: {
+    width: '100%',
+    height: CARD_WIDTH,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  postContent: {
+    padding: SPACING.md,
+  },
+  postHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: SPACING.sm,
+    gap: SPACING.xs,
+  },
+  authorName: {
+    ...TYPOGRAPHY.bodyMedium,
+    fontWeight: '600',
+  },
+  postTitle: {
+    ...TYPOGRAPHY.body,
+    marginBottom: SPACING.sm,
+    lineHeight: 20,
+  },
+  postFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.xs,
+  },
+  viewText: {
+    ...TYPOGRAPHY.bodySmall,
+    fontWeight: '600',
   },
 });
