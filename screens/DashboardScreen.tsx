@@ -9,7 +9,7 @@ import { useSupabaseAuth } from '../contexts/SupabaseAuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { mockEvents } from '../data/mockData';
 import { SPACING, TYPOGRAPHY, SHADOWS } from '../constants/theme';
-import { AnimatedMembersHubButton } from '../components/AnimatedMembersHubButton';
+//import { AnimatedMembersHubButton } from '../components/AnimatedMembersHubButton';
 
 const QUOTES = [
   'Connect. Lead. Inspire.',
