@@ -193,15 +193,15 @@ const MemberCard = React.memo(({ member, colors, isDarkMode, isExpanded, onToggl
       Animated.timing(heightAnim, {
         toValue: isExpanded ? FIXED_EXPANDED_HEIGHT : 0,
         duration: 200,
-        useNativeDriver: false, // height cannot use native driver
+        useNativeDriver: false,
       }),
       Animated.timing(opacityAnim, {
         toValue: isExpanded ? 1 : 0,
         duration: 200,
-        useNativeDriver: true, // opacity can use native driver
+        useNativeDriver: false,
       }),
     ]).start();
-  }, [isExpanded]);
+  }, [isExpanded, heightAnim, opacityAnim]);
 
   return (
     <View style={styles.memberCardContainer}>
@@ -250,7 +250,7 @@ const MemberCard = React.memo(({ member, colors, isDarkMode, isExpanded, onToggl
         style={[
           styles.expandedContent, 
           { 
-            height: heightAnim,
+            maxHeight: heightAnim,
             opacity: opacityAnim,
           }
         ]}
@@ -281,6 +281,8 @@ const MemberCard = React.memo(({ member, colors, isDarkMode, isExpanded, onToggl
     </View>
   );
 });
+
+MemberCard.displayName = 'MemberCard';
 
 const styles = StyleSheet.create({
   container: {
