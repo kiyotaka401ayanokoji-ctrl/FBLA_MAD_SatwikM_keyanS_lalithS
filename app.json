@@ -53,7 +53,9 @@
     },
     "extra": {
       "EXPO_PUBLIC_KIKI_API_KEY": "proj_f2af9daa_3ZR2SDrop5YD4nSLzVq5ANbj",
-      "EXPO_PUBLIC_KIKI_BASE_URL": "https://kiki-unkey-proxy.chris-d9a.workers.dev/"
+      "EXPO_PUBLIC_KIKI_BASE_URL": "https://kiki-unkey-proxy.chris-d9a.workers.dev/",
+      "EXPO_PUBLIC_SUPABASE_URL": "https://forddbtpuljnlagvogzu.supabase.co",
+      "EXPO_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZvcmRkYnRwdWxqbmxhZ3ZvZ3p1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI5MTE1NTMsImV4cCI6MjA3ODQ4NzU1M30.VCO7QjH8nleEKN357nQfbToUALThkXzqn2EXZEHLmcs"
     }
   }
 }
