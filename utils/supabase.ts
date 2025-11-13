@@ -1,11 +1,10 @@
 import 'react-native-url-polyfill/auto';
 import { createClient } from '@supabase/supabase-js';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Constants from 'expo-constants';
 
-// Supabase configuration - read from app.json extra config
-const supabaseUrl = Constants.expoConfig?.extra?.EXPO_PUBLIC_SUPABASE_URL || process.env.EXPO_PUBLIC_SUPABASE_URL || '';
-const supabaseAnonKey = Constants.expoConfig?.extra?.EXPO_PUBLIC_SUPABASE_ANON_KEY || process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || '';
+// Supabase configuration - HARDCODED for reliability
+const supabaseUrl = 'https://forddbtpuljnlagvogzu.supabase.co';
+const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZvcmRkYnRwdWxqbmxhZ3ZvZ3p1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI5MTE1NTMsImV4cCI6MjA3ODQ4NzU1M30.VCO7QjH8nleEKN357nQfbToUALThkXzqn2EXZEHLmcs';
 
 // Create Supabase client with AsyncStorage for session persistence
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
