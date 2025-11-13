@@ -12,7 +12,11 @@ import { SPACING, TYPOGRAPHY, SHADOWS } from '../constants/theme';
 import { AnimatedMembersHubButton } from '../components/AnimatedMembersHubButton';
 
 const QUOTES = [
-
+  'Connect. Lead. Inspire.',
+  'Innovation starts with you.',
+  'Building Leaders of Tomorrow.',
+  'Connecting Creativity.',
+  'Your future begins today.',
 ];
 
 interface DashboardScreenProps {
