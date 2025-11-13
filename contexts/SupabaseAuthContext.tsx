@@ -62,7 +62,7 @@ export function SupabaseAuthProvider({ children }: { children: React.ReactNode }
         .from('profiles')
         .select('*')
         .eq('id', userId)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
 
@@ -78,9 +78,14 @@ export function SupabaseAuthProvider({ children }: { children: React.ReactNode }
           memberSince: data.member_since,
           eventsAttended: data.events_attended,
         });
+      } else {
+        // No profile exists yet - this is okay, user might need to complete signup
+        console.log('No profile found for user:', userId);
+        setUser(null);
       }
     } catch (error) {
       console.error('Error loading user profile:', error);
+      setUser(null);
     } finally {
       setIsLoading(false);
     }
