@@ -6,6 +6,7 @@ export interface Member {
   name: string;
   initials: string;
   bio: string;
+  email?: string;
   created_at?: string;
 }
 
@@ -36,7 +37,7 @@ export const initMembersDatabase = async (): Promise<void> => {
       return;
     }
 
-    // If members exist, don\'t seed again
+    // If members exist, don't seed again
     if (existingMembers && existingMembers.length > 0) {
       console.log('Members database already seeded');
       return;
@@ -670,11 +671,16 @@ const seedMembersDatabase = async (): Promise<void> => {
       'Website Design': ['Amogh Jain', 'Akshar Parmar', 'Ishaan Agarwal', 'Yunhan Li', 'Swarali Karale', 'Aarish Kumar', 'Yusuf Abbasi', 'Saatvik Patel', 'Andy Yang', 'Rithwik Rajashekara', 'Soumil Pole', 'Harshi Abburi', 'Brandon Lin', 'Aileen Putla', 'Prakruthi Venugopalan', 'Rishaan Das'],
     };
 
-    // Generate initials for each member
-    const membersWithInitials = membersData.map(member => ({
-      ...member,
-      initials: member.name.split(' ').map(n => n[0]).join('').toUpperCase()
-    }));
+    // Generate initials and email for each member
+    const membersWithInitials = membersData.map((member, index) => {
+      // Generate a safe email from the name
+      const emailName = member.name.toLowerCase().replace(/\s+/g, '.');
+      return {
+        ...member,
+        initials: member.name.split(' ').map(n => n[0]).join('').toUpperCase(),
+        email: `${emailName}@fbla.example.com`
+      };
+    });
 
     // Insert members
     const { data: insertedMembers, error: membersInsertError } = await supabase
