@@ -682,10 +682,13 @@ const seedMembersDatabase = async (): Promise<void> => {
       };
     });
 
-    // Insert members
+    // Insert members using upsert with ignoreDuplicates
     const { data: insertedMembers, error: membersInsertError } = await supabase
       .from('fbla_members')
-      .insert(membersWithInitials)
+      .upsert(membersWithInitials, { 
+        onConflict: 'email',
+        ignoreDuplicates: true 
+      })
       .select();
 
     if (membersInsertError) {
@@ -695,13 +698,26 @@ const seedMembersDatabase = async (): Promise<void> => {
 
     console.log(`Inserted ${insertedMembers?.length} members`);
 
-    // Insert events
+    // Fetch all members to get their IDs (including existing ones)
+    const { data: allMembers, error: fetchError } = await supabase
+      .from('fbla_members')
+      .select('id, name, email');
+
+    if (fetchError) {
+      console.error('Error fetching members:', fetchError);
+      return;
+    }
+
+    // Insert events using upsert
     const eventNames = Object.keys(eventMembersMap);
     const eventsToInsert = eventNames.map(name => ({ name }));
 
     const { data: insertedEvents, error: eventsInsertError } = await supabase
       .from('fbla_events')
-      .insert(eventsToInsert)
+      .upsert(eventsToInsert, {
+        onConflict: 'name',
+        ignoreDuplicates: true
+      })
       .select();
 
     if (eventsInsertError) {
@@ -711,14 +727,24 @@ const seedMembersDatabase = async (): Promise<void> => {
 
     console.log(`Inserted ${insertedEvents?.length} events`);
 
+    // Fetch all events to get their IDs (including existing ones)
+    const { data: allEvents, error: fetchEventsError } = await supabase
+      .from('fbla_events')
+      .select('id, name');
+
+    if (fetchEventsError) {
+      console.error('Error fetching events:', fetchEventsError);
+      return;
+    }
+
     // Create member-event relationships
     const memberEventRelationships: { member_id: string; event_id: string }[] = [];
 
-    for (const event of insertedEvents || []) {
+    for (const event of allEvents || []) {
       const memberNames = eventMembersMap[event.name] || [];
       
       for (const memberName of memberNames) {
-        const member = insertedMembers?.find(m => m.name === memberName);
+        const member = allMembers?.find(m => m.name === memberName);
         if (member) {
           memberEventRelationships.push({
             member_id: member.id,
@@ -728,13 +754,16 @@ const seedMembersDatabase = async (): Promise<void> => {
       }
     }
 
-    // Insert member-event relationships in batches
+    // Insert member-event relationships using upsert
     const batchSize = 100;
     for (let i = 0; i < memberEventRelationships.length; i += batchSize) {
       const batch = memberEventRelationships.slice(i, i + batchSize);
       const { error: relationshipsError } = await supabase
         .from('fbla_member_events')
-        .insert(batch);
+        .upsert(batch, {
+          onConflict: 'member_id,event_id',
+          ignoreDuplicates: true
+        });
 
       if (relationshipsError) {
         console.error('Error inserting member-event relationships:', relationshipsError);
