@@ -2,8 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, ActivityIndicator, Animated, LayoutAnimation, Platform, UIManager } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../contexts/ThemeContext';
-import { SPACING, TYPOGRAPHY, BORDER_RADIUS } from '../constants/theme';
+import { SPACING, TYPOGRAPHY, BORDER_RADIUS, SHADOWS } from '../constants/theme';
 import { getAllMembers, searchMembersByName, searchMembersByEvent, Member, Event } from '../utils/membersDatabase';
 
 // Enable LayoutAnimation on Android
@@ -15,7 +16,7 @@ interface MemberWithEvents extends Member {
   events: Event[];
 }
 
-export default function MembersHubScreen() {
+export default function MembersHubScreen({ navigation }: any) {
   const { colors, isDarkMode } = useTheme();
   const [members, setMembers] = useState<MemberWithEvents[]>([]);
   const [filteredMembers, setFilteredMembers] = useState<MemberWithEvents[]>([]);
@@ -64,7 +65,6 @@ export default function MembersHubScreen() {
   };
 
   const toggleMemberExpansion = (memberId: string) => {
-    // Configure LayoutAnimation for smooth expansion
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setExpandedMemberId(expandedMemberId === memberId ? null : memberId);
   };
@@ -73,7 +73,7 @@ export default function MembersHubScreen() {
     return (
       <View style={[styles.container, { backgroundColor: isDarkMode ? '#0A0E13' : '#E8EDF2' }]}>
         <SafeAreaView style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
+          <ActivityIndicator size="large" color={colors.secondary} />
           <Text style={[styles.loadingText, { color: colors.textSecondary }]}>Loading members...</Text>
         </SafeAreaView>
       </View>
@@ -83,21 +83,54 @@ export default function MembersHubScreen() {
   return (
     <View style={[styles.container, { backgroundColor: isDarkMode ? '#0A0E13' : '#E8EDF2' }]}>
       <SafeAreaView style={styles.safeArea} edges={['top']}>
-        {/* Header */}
-        <View style={[styles.header, { backgroundColor: isDarkMode ? '#1A1F2E' : '#FFFFFF', borderBottomColor: isDarkMode ? '#2A3142' : '#E0E0E0' }]}>
-          <View style={styles.headerContent}>
-            <MaterialIcons name="people" size={28} color={colors.primary} />
-            <Text style={[styles.headerTitle, { color: colors.text }]}>Members Hub</Text>
+        {/* Enhanced Header with Gradient */}
+        <LinearGradient
+          colors={isDarkMode 
+            ? ['#1A1F2E', '#252A35', '#1A1F2E'] 
+            : ['#FFFFFF', '#FFF9E6', '#FFFFFF']
+          }
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={[styles.header, { borderBottomColor: isDarkMode ? '#2A3142' : '#FFE8A3' }]}
+        >
+          <View style={styles.headerTop}>
+            <TouchableOpacity 
+              onPress={() => navigation.goBack()} 
+              style={[styles.backButton, { backgroundColor: isDarkMode ? 'rgba(255, 184, 28, 0.1)' : 'rgba(255, 184, 28, 0.15)' }]}
+              activeOpacity={0.7}
+            >
+              <MaterialIcons name="arrow-back" size={24} color={colors.secondary} />
+            </TouchableOpacity>
+            
+            <View style={styles.headerContent}>
+              <View style={[styles.iconContainer, { backgroundColor: isDarkMode ? 'rgba(255, 184, 28, 0.15)' : 'rgba(255, 184, 28, 0.2)' }]}>
+                <MaterialIcons name="people" size={32} color={colors.secondary} />
+              </View>
+              <View style={styles.headerTextContainer}>
+                <Text style={[styles.headerTitle, { color: colors.text }]}>Members Hub</Text>
+                <View style={styles.memberCountBadge}>
+                  <View style={[styles.countDot, { backgroundColor: colors.secondary }]} />
+                  <Text style={[styles.memberCount, { color: colors.textSecondary }]}>
+                    {members.length} active members
+                  </Text>
+                </View>
+              </View>
+            </View>
           </View>
-          <Text style={[styles.memberCount, { color: colors.textSecondary }]}>
-            {members.length} members
-          </Text>
-        </View>
+        </LinearGradient>
 
-        {/* Search Bar */}
+        {/* Enhanced Search Bar */}
         <View style={styles.searchContainer}>
-          <View style={[styles.searchBar, { backgroundColor: isDarkMode ? '#1A1F2E' : '#FFFFFF', borderColor: isDarkMode ? '#2A3142' : '#E0E0E0' }]}>
-            <MaterialIcons name="search" size={22} color={colors.textLight} />
+          <View style={[
+            styles.searchBar, 
+            { 
+              backgroundColor: isDarkMode ? '#1A1F2E' : '#FFFFFF',
+              borderColor: isDarkMode ? 'rgba(255, 184, 28, 0.2)' : 'rgba(255, 184, 28, 0.3)',
+            }
+          ]}>
+            <View style={[styles.searchIconContainer, { backgroundColor: isDarkMode ? 'rgba(255, 184, 28, 0.1)' : 'rgba(255, 184, 28, 0.15)' }]}>
+              <MaterialIcons name="search" size={20} color={colors.secondary} />
+            </View>
             <TextInput
               style={[styles.searchInput, { color: colors.text }]}
               placeholder="Search by name or event..."
@@ -106,7 +139,11 @@ export default function MembersHubScreen() {
               onChangeText={handleSearch}
             />
             {searchQuery.length > 0 && (
-              <TouchableOpacity onPress={() => handleSearch('')} activeOpacity={0.7}>
+              <TouchableOpacity 
+                onPress={() => handleSearch('')} 
+                activeOpacity={0.7}
+                style={styles.clearButton}
+              >
                 <MaterialIcons name="close" size={20} color={colors.textLight} />
               </TouchableOpacity>
             )}
@@ -125,13 +162,23 @@ export default function MembersHubScreen() {
             eventResults.map((eventResult, eventIndex) => (
               <View key={eventResult.eventName}>
                 <View style={styles.eventSection}>
-                  <View style={[styles.eventHeader, { backgroundColor: isDarkMode ? '#1A1F2E' : '#FFFFFF' }]}>
-                    <MaterialIcons name="event" size={20} color={colors.primary} />
+                  <LinearGradient
+                    colors={isDarkMode 
+                      ? ['rgba(255, 184, 28, 0.08)', 'rgba(255, 184, 28, 0.03)'] 
+                      : ['rgba(255, 184, 28, 0.12)', 'rgba(255, 184, 28, 0.05)']
+                    }
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={styles.eventHeader}
+                  >
+                    <MaterialIcons name="event" size={20} color={colors.secondary} />
                     <Text style={[styles.eventName, { color: colors.text }]}>{eventResult.eventName}</Text>
-                    <Text style={[styles.eventMemberCount, { color: colors.textSecondary }]}>
-                      {eventResult.members.length} {eventResult.members.length === 1 ? 'member' : 'members'}
-                    </Text>
-                  </View>
+                    <View style={[styles.eventCountBadge, { backgroundColor: isDarkMode ? 'rgba(255, 184, 28, 0.15)' : 'rgba(255, 184, 28, 0.2)' }]}>
+                      <Text style={[styles.eventMemberCount, { color: colors.secondary }]}>
+                        {eventResult.members.length}
+                      </Text>
+                    </View>
+                  </LinearGradient>
                   {eventResult.members.map((member, memberIndex) => (
                     <MemberCard
                       key={member.id}
@@ -161,7 +208,9 @@ export default function MembersHubScreen() {
 
           {!searchByEvent && filteredMembers.length === 0 && searchQuery.length > 0 && (
             <View style={styles.noResults}>
-              <MaterialIcons name="search-off" size={64} color={colors.textLight} />
+              <View style={[styles.noResultsIcon, { backgroundColor: isDarkMode ? 'rgba(255, 184, 28, 0.1)' : 'rgba(255, 184, 28, 0.15)' }]}>
+                <MaterialIcons name="search-off" size={48} color={colors.secondary} />
+              </View>
               <Text style={[styles.noResultsText, { color: colors.textSecondary }]}>
                 No members found for &quot;{searchQuery}&quot;
               </Text>
@@ -181,14 +230,12 @@ interface MemberCardProps {
   onToggle: () => void;
 }
 
-// Wrap in React.memo to prevent unnecessary re-renders
 const MemberCard = React.memo(({ member, colors, isDarkMode, isExpanded, onToggle }: MemberCardProps) => {
   const FIXED_EXPANDED_HEIGHT = 220;
   const heightAnim = useRef(new Animated.Value(0)).current;
   const opacityAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    // Animate height and opacity when expanded state changes
     Animated.parallel([
       Animated.timing(heightAnim, {
         toValue: isExpanded ? FIXED_EXPANDED_HEIGHT : 0,
@@ -212,16 +259,22 @@ const MemberCard = React.memo(({ member, colors, isDarkMode, isExpanded, onToggl
           styles.memberCard,
           { 
             backgroundColor: isDarkMode ? '#1A1F2E' : '#FFFFFF',
-            borderColor: isDarkMode ? '#2A3142' : '#E0E0E0',
+            borderColor: isDarkMode ? 'rgba(255, 184, 28, 0.15)' : 'rgba(255, 184, 28, 0.2)',
           }
         ]}
       >
-        {/* Avatar */}
-        <View style={[styles.avatar, { backgroundColor: colors.primary + '20' }]}>
-          <Text style={[styles.avatarText, { color: colors.primary }]}>{member.initials}</Text>
-        </View>
+        <LinearGradient
+          colors={isDarkMode 
+            ? ['rgba(255, 184, 28, 0.2)', 'rgba(255, 184, 28, 0.1)'] 
+            : ['rgba(255, 184, 28, 0.25)', 'rgba(255, 184, 28, 0.15)']
+          }
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.avatar}
+        >
+          <Text style={[styles.avatarText, { color: colors.secondary }]}>{member.initials}</Text>
+        </LinearGradient>
 
-        {/* Member Info */}
         <View style={styles.memberInfo}>
           <Text style={[styles.memberName, { color: colors.text }]} numberOfLines={1}>
             {member.name}
@@ -230,22 +283,20 @@ const MemberCard = React.memo(({ member, colors, isDarkMode, isExpanded, onToggl
             {member.bio}
           </Text>
           <View style={styles.eventBadge}>
-            <MaterialIcons name="event" size={14} color={colors.textLight} />
+            <MaterialIcons name="event" size={14} color={colors.secondary} />
             <Text style={[styles.eventCount, { color: colors.textLight }]}>
               {member.events.length} {member.events.length === 1 ? 'event' : 'events'}
             </Text>
           </View>
         </View>
 
-        {/* Expand Icon */}
         <MaterialIcons 
           name={isExpanded ? 'keyboard-arrow-up' : 'keyboard-arrow-down'} 
           size={24} 
-          color={colors.textLight} 
+          color={colors.secondary} 
         />
       </TouchableOpacity>
 
-      {/* Expanded Content */}
       <Animated.View 
         style={[
           styles.expandedContent, 
@@ -255,28 +306,37 @@ const MemberCard = React.memo(({ member, colors, isDarkMode, isExpanded, onToggl
           }
         ]}
       >
-        <View style={[styles.expandedInner, { backgroundColor: isDarkMode ? '#141824' : '#F5F7FA' }]}>
+        <LinearGradient
+          colors={isDarkMode 
+            ? ['rgba(26, 31, 46, 0.5)', 'rgba(20, 24, 36, 0.8)'] 
+            : ['rgba(255, 249, 230, 0.3)', 'rgba(245, 247, 250, 0.5)']
+          }
+          style={styles.expandedInner}
+        >
           <Text style={[styles.expandedBio, { color: colors.text }]}>{member.bio}</Text>
           
           {member.events.length > 0 && (
             <View style={styles.eventsSection}>
               <Text style={[styles.eventsTitle, { color: colors.textSecondary }]}>Competing in:</Text>
               {member.events.slice(0, 2).map((event) => (
-                <View key={event.id} style={[styles.eventItem, { backgroundColor: isDarkMode ? '#1A1F2E' : '#FFFFFF' }]}>
-                  <MaterialIcons name="star" size={16} color={colors.accent} />
+                <View key={event.id} style={[styles.eventItem, { 
+                  backgroundColor: isDarkMode ? 'rgba(255, 184, 28, 0.08)' : 'rgba(255, 184, 28, 0.12)',
+                  borderColor: isDarkMode ? 'rgba(255, 184, 28, 0.15)' : 'rgba(255, 184, 28, 0.2)',
+                }]}>
+                  <MaterialIcons name="star" size={16} color={colors.secondary} />
                   <Text style={[styles.eventItemText, { color: colors.text }]} numberOfLines={1}>
                     {event.name}
                   </Text>
                 </View>
               ))}
               {member.events.length > 2 && (
-                <Text style={[styles.moreEvents, { color: colors.textLight }]}>
+                <Text style={[styles.moreEvents, { color: colors.secondary }]}>
                   +{member.events.length - 2} more {member.events.length - 2 === 1 ? 'event' : 'events'}
                 </Text>
               )}
             </View>
           )}
-        </View>
+        </LinearGradient>
       </Animated.View>
     </View>
   );
@@ -302,22 +362,57 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingHorizontal: SPACING.lg,
-    paddingVertical: SPACING.md,
-    borderBottomWidth: 1,
+    paddingVertical: SPACING.lg,
+    borderBottomWidth: 2,
   },
-  headerContent: {
+  headerTop: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: SPACING.sm,
-    marginBottom: SPACING.xs,
+    gap: SPACING.md,
+  },
+  backButton: {
+    width: 44,
+    height: 44,
+    borderRadius: BORDER_RADIUS.md,
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...SHADOWS.small,
+  },
+  headerContent: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.md,
+  },
+  iconContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: BORDER_RADIUS.md,
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...SHADOWS.medium,
+  },
+  headerTextContainer: {
+    flex: 1,
   },
   headerTitle: {
     ...TYPOGRAPHY.h2,
-    fontSize: 24,
+    fontSize: 26,
+    marginBottom: SPACING.xs,
+  },
+  memberCountBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  countDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
   },
   memberCount: {
     ...TYPOGRAPHY.bodySmall,
-    fontWeight: '500',
+    fontWeight: '600',
   },
   searchContainer: {
     paddingHorizontal: SPACING.lg,
@@ -327,15 +422,26 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.sm,
-    borderRadius: BORDER_RADIUS.md,
-    borderWidth: 1,
+    paddingVertical: SPACING.xs,
+    borderRadius: BORDER_RADIUS.lg,
+    borderWidth: 2,
     gap: SPACING.sm,
+    ...SHADOWS.small,
+  },
+  searchIconContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: BORDER_RADIUS.sm,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   searchInput: {
     flex: 1,
     ...TYPOGRAPHY.body,
-    paddingVertical: SPACING.xs,
+    paddingVertical: SPACING.sm,
+  },
+  clearButton: {
+    padding: SPACING.xs,
   },
   scrollView: {
     flex: 1,
@@ -351,19 +457,25 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.sm,
+    paddingVertical: SPACING.md,
     borderRadius: BORDER_RADIUS.md,
     marginBottom: SPACING.sm,
     gap: SPACING.sm,
+    ...SHADOWS.small,
   },
   eventName: {
     ...TYPOGRAPHY.bodyMedium,
-    fontWeight: '600',
+    fontWeight: '700',
     flex: 1,
+  },
+  eventCountBadge: {
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: 4,
+    borderRadius: BORDER_RADIUS.sm,
   },
   eventMemberCount: {
     ...TYPOGRAPHY.caption,
-    fontWeight: '500',
+    fontWeight: '700',
   },
   memberCardContainer: {
     marginBottom: SPACING.sm,
@@ -373,20 +485,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: SPACING.md,
     borderRadius: BORDER_RADIUS.md,
-    borderWidth: 1,
+    borderWidth: 1.5,
     gap: SPACING.md,
+    ...SHADOWS.small,
   },
   avatar: {
-    width: 50,
-    height: 50,
-    borderRadius: 8,
+    width: 52,
+    height: 52,
+    borderRadius: BORDER_RADIUS.md,
     justifyContent: 'center',
     alignItems: 'center',
   },
   avatarText: {
     ...TYPOGRAPHY.h3,
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: '800',
   },
   memberInfo: {
     flex: 1,
@@ -394,7 +507,7 @@ const styles = StyleSheet.create({
   },
   memberName: {
     ...TYPOGRAPHY.bodyMedium,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   memberBio: {
     ...TYPOGRAPHY.bodySmall,
@@ -407,7 +520,7 @@ const styles = StyleSheet.create({
   },
   eventCount: {
     ...TYPOGRAPHY.caption,
-    fontWeight: '500',
+    fontWeight: '600',
   },
   expandedContent: {
     overflow: 'hidden',
@@ -429,7 +542,7 @@ const styles = StyleSheet.create({
   },
   eventsTitle: {
     ...TYPOGRAPHY.bodySmall,
-    fontWeight: '600',
+    fontWeight: '700',
     marginBottom: SPACING.xs,
   },
   eventItem: {
@@ -438,20 +551,30 @@ const styles = StyleSheet.create({
     padding: SPACING.sm,
     borderRadius: BORDER_RADIUS.sm,
     gap: SPACING.sm,
+    borderWidth: 1,
   },
   eventItemText: {
     ...TYPOGRAPHY.bodySmall,
     flex: 1,
+    fontWeight: '500',
   },
   moreEvents: {
     ...TYPOGRAPHY.caption,
-    fontStyle: 'italic',
+    fontWeight: '700',
     marginTop: SPACING.xs,
   },
   noResults: {
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: SPACING.xxl * 2,
+  },
+  noResultsIcon: {
+    width: 96,
+    height: 96,
+    borderRadius: BORDER_RADIUS.xl,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: SPACING.md,
   },
   noResultsText: {
     ...TYPOGRAPHY.body,
