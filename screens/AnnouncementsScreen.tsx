@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Linking } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import InstagramFeed from '../components/InstagramFeed';
 import { useTheme } from '../contexts/ThemeContext';
@@ -59,16 +59,6 @@ export default function AnnouncementsScreen() {
     }
   };
 
-  const handleFollowInstagram = async () => {
-    const username = activeTab === 'national' ? 'westcentral.wafbla' : 'fbla.nchs';
-    try {
-      await Linking.openURL(`https://www.instagram.com/${username}/`);
-    } catch (error) {
-      console.error('Error opening Instagram:', error);
-    }
-  };
-
-  const instagramHandle = activeTab === 'national' ? '@westcentral.wafbla' : '@fbla.nchs';
   const currentPosts = activeTab === 'national' ? NATIONAL_POSTS : CHAPTER_POSTS;
 
   return (
@@ -82,25 +72,10 @@ export default function AnnouncementsScreen() {
       />
       
       <SafeAreaView style={styles.safeArea} edges={['top']}>
-        {/* Cleaner Header */}
-        <Animated.View entering={FadeIn.duration(600)} style={styles.header}>
-          <View style={styles.headerContent}>
-            <MaterialIcons name="campaign" size={28} color={colors.primary} />
-            <View style={styles.headerTextContainer}>
-              <Text style={[styles.headerTitle, { color: colors.text }]}>Announcements</Text>
-              <Text style={[styles.headerSubtitle, { color: colors.textLight }]}>
-                {instagramHandle}
-              </Text>
-            </View>
-          </View>
-          <TouchableOpacity 
-            style={[styles.followButton, { backgroundColor: colors.primary }]}
-            onPress={handleFollowInstagram}
-            activeOpacity={0.8}
-          >
-            <MaterialIcons name="open-in-new" size={20} color="#FFFFFF" />
-          </TouchableOpacity>
-        </Animated.View>
+        {/* Header - Matching other pages */}
+        <View style={styles.header}>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>Announcements</Text>
+        </View>
 
         {/* Tab Navigation */}
         <Animated.View entering={FadeInDown.delay(200).springify()} style={styles.tabContainer}>
@@ -169,36 +144,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
     paddingHorizontal: SPACING.lg,
-    paddingTop: SPACING.sm,
-    paddingBottom: SPACING.md,
-  },
-  headerContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: SPACING.sm,
-  },
-  headerTextContainer: {
-    justifyContent: 'center',
+    paddingVertical: SPACING.md,
   },
   headerTitle: {
     ...TYPOGRAPHY.h2,
-    marginBottom: 2,
-  },
-  headerSubtitle: {
-    ...TYPOGRAPHY.caption,
-    fontWeight: '500',
-  },
-  followButton: {
-    width: 44,
-    height: 44,
-    borderRadius: BORDER_RADIUS.md,
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...SHADOWS.small,
   },
   tabContainer: {
     paddingHorizontal: SPACING.lg,
