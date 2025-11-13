@@ -5,7 +5,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import Animated, { FadeInDown, FadeInUp, FadeIn } from 'react-native-reanimated';
-import { useAuth } from '../contexts/AuthContext';
+import { useSupabaseAuth } from '../contexts/SupabaseAuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { mockEvents } from '../data/mockData';
 import { SPACING, TYPOGRAPHY, SHADOWS } from '../constants/theme';
@@ -23,7 +23,7 @@ interface DashboardScreenProps {
 }
 
 export default function DashboardScreen({ navigation }: DashboardScreenProps) {
-  const { user } = useAuth();
+  const { user } = useSupabaseAuth();
   const { colors, isDarkMode } = useTheme();
   const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
   const [currentDate, setCurrentDate] = useState(new Date());
