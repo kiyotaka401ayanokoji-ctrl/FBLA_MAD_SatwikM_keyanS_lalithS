@@ -4,11 +4,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
-import Animated, { FadeInDown, FadeInUp, FadeIn } from 'react-native-reanimated';
+import Animated, { FadeInDown, FadeInUp, FadeIn, useAnimatedStyle, useSharedValue, withRepeat, withSequence, withTiming, Easing } from 'react-native-reanimated';
 import { useSupabaseAuth } from '../contexts/SupabaseAuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { mockEvents } from '../data/mockData';
 import { SPACING, TYPOGRAPHY, SHADOWS } from '../constants/theme';
+import { AnimatedMembersHubButton } from '../components/AnimatedMembersHubButton';
 
 const QUOTES = [
   'Connect. Lead. Inspire.',
@@ -28,10 +29,32 @@ export default function DashboardScreen({ navigation }: DashboardScreenProps) {
   const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
   const [currentDate, setCurrentDate] = useState(new Date());
   const quoteOpacity = useRef(new RNAnimated.Value(1)).current;
+  const bubbleScale = useSharedValue(1);
+  const bubbleRotate = useSharedValue(0);
 
   const upcomingEvent = mockEvents.find(e => e.isRegistered);
 
   useEffect(() => {
+    // Bubble animation
+    bubbleScale.value = withRepeat(
+      withSequence(
+        withTiming(1.1, { duration: 1000, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1, { duration: 1000, easing: Easing.inOut(Easing.ease) })
+      ),
+      -1,
+      false
+    );
+
+    bubbleRotate.value = withRepeat(
+      withSequence(
+        withTiming(5, { duration: 800, easing: Easing.inOut(Easing.ease) }),
+        withTiming(-5, { duration: 800, easing: Easing.inOut(Easing.ease) }),
+        withTiming(0, { duration: 800, easing: Easing.inOut(Easing.ease) })
+      ),
+      -1,
+      false
+    );
+
     const dateInterval = setInterval(() => {
       setCurrentDate(new Date());
     }, 60000);
@@ -57,7 +80,7 @@ export default function DashboardScreen({ navigation }: DashboardScreenProps) {
       clearInterval(dateInterval);
       clearInterval(quoteInterval);
     };
-  }, [quoteOpacity]);
+  }, [quoteOpacity, bubbleScale, bubbleRotate]);
 
   const openSocialMedia = (url: string) => {
     Linking.openURL(url).catch(err => console.error('Error opening URL:', err));
@@ -144,7 +167,7 @@ export default function DashboardScreen({ navigation }: DashboardScreenProps) {
             </BlurView>
           </Animated.View>
 
-          {/* AI Coach Button - NEW */}
+          {/* AI Coach Button */}
           <Animated.View entering={FadeInDown.delay(300).springify()}>
             <TouchableOpacity
               activeOpacity={0.85}
@@ -181,6 +204,15 @@ export default function DashboardScreen({ navigation }: DashboardScreenProps) {
               </BlurView>
             </TouchableOpacity>
           </Animated.View>
+
+          {/* Members Hub Button - NEW */}
+          <AnimatedMembersHubButton 
+            navigation={navigation} 
+            colors={colors} 
+            isDarkMode={isDarkMode}
+            bubbleScale={bubbleScale}
+            bubbleRotate={bubbleRotate}
+          />
 
           {/* Enhanced Upcoming Event with defined glass */}
           {upcomingEvent && (
@@ -367,6 +399,56 @@ function QuickActionButton({ icon, color, onPress, colors, isDarkMode }: any) {
         </View>
       </BlurView>
     </TouchableOpacity>
+  );
+}
+
+function AnimatedMembersHubButton({ navigation, colors, isDarkMode, bubbleScale, bubbleRotate }: any) {
+  const animatedStyle = useAnimatedStyle(() => {
+    return {
+      transform: [
+        { scale: bubbleScale.value },
+        { rotate: `${bubbleRotate.value}deg` },
+      ],
+    };
+  });
+
+  return (
+    <Animated.View entering={FadeInDown.delay(350).springify()}>
+      <TouchableOpacity
+        activeOpacity={0.85}
+        onPress={() => navigation.navigate('MembersHub')}
+      >
+        <BlurView 
+          intensity={isDarkMode ? 45 : 95} 
+          tint={isDarkMode ? 'dark' : 'light'}
+          style={[styles.membersHubCard, SHADOWS.large]}
+        >
+          <View style={[styles.membersHubCardInner, { 
+            borderColor: isDarkMode ? 'rgba(90, 159, 238, 0.5)' : 'rgba(255, 255, 255, 0.7)', 
+            borderWidth: 1.5,
+            backgroundColor: isDarkMode ? 'transparent' : 'rgba(255, 255, 255, 0.9)'
+          }]}>
+            <View style={styles.membersHubHeader}>
+              <Animated.View style={[styles.membersHubIconContainer, { backgroundColor: colors.secondary }, animatedStyle]}>
+                <MaterialIcons name="forum" size={28} color="#FFFFFF" />
+              </Animated.View>
+              <View style={styles.membersHubHeaderText}>
+                <Text style={[styles.membersHubLabel, { color: colors.textLight }]}>
+                  CONNECT WITH TEAM
+                </Text>
+                <Text style={[styles.membersHubTitle, { color: colors.text }]}>
+                  Member Hub
+                </Text>
+              </View>
+              <MaterialIcons name="chevron-right" size={24} color={colors.primary} />
+            </View>
+            <Text style={[styles.membersHubDescription, { color: colors.textSecondary }]}>
+              Browse all members, search by name or event, and connect with your team
+            </Text>
+          </View>
+        </BlurView>
+      </TouchableOpacity>
+    </Animated.View>
   );
 }
 
@@ -630,6 +712,43 @@ const styles = StyleSheet.create({
     fontSize: 20,
   },
   aiCoachDescription: {
+    ...TYPOGRAPHY.bodySmall,
+    lineHeight: 20,
+  },
+  membersHubCard: {
+    borderRadius: 26,
+    overflow: 'hidden',
+    marginBottom: SPACING.lg,
+  },
+  membersHubCardInner: {
+    padding: SPACING.lg,
+    borderRadius: 26,
+  },
+  membersHubHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: SPACING.sm,
+  },
+  membersHubIconContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: SPACING.md,
+  },
+  membersHubHeaderText: {
+    flex: 1,
+  },
+  membersHubLabel: {
+    ...TYPOGRAPHY.captionBold,
+    marginBottom: SPACING.xs,
+  },
+  membersHubTitle: {
+    ...TYPOGRAPHY.h3,
+    fontSize: 20,
+  },
+  membersHubDescription: {
     ...TYPOGRAPHY.bodySmall,
     lineHeight: 20,
   },

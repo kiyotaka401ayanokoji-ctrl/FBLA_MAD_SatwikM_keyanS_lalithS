@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -10,6 +10,7 @@ import { BlurView } from 'expo-blur';
 
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { SupabaseAuthProvider, useSupabaseAuth } from './contexts/SupabaseAuthContext';
+import { initMembersDatabase } from './utils/membersDatabase';
 
 import SplashScreen from './screens/SplashScreen';
 import SignInScreen from './screens/SignInScreen';
@@ -21,6 +22,7 @@ import ResourcesScreen from './screens/ResourcesScreen';
 import ProfileScreen from './screens/ProfileScreen';
 import EventDetailScreen from './screens/EventDetailScreen';
 import AICoachScreen from './screens/AICoachScreen';
+import MembersHubScreen from './screens/MembersHubScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -146,6 +148,14 @@ function MainStack() {
           animation: 'slide_from_right',
         }}
       />
+      <Stack.Screen 
+        name="MembersHub" 
+        component={MembersHubScreen}
+        options={{
+          presentation: 'card',
+          animation: 'slide_from_right',
+        }}
+      />
     </Stack.Navigator>
   );
 }
@@ -154,6 +164,13 @@ function AppContent() {
   const [showSplash, setShowSplash] = useState(true);
   const { user, isLoading } = useSupabaseAuth();
   const { isDarkMode } = useTheme();
+
+  // Initialize members database
+  useEffect(() => {
+    initMembersDatabase().catch(error => {
+      console.error('Failed to initialize members database:', error);
+    });
+  }, []);
 
   if (showSplash) {
     return <SplashScreen onFinish={() => setShowSplash(false)} />;
