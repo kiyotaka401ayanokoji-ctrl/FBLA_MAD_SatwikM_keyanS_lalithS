@@ -2,174 +2,160 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
-import { BlurView } from 'expo-blur';
-import Animated, { FadeInDown, useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
+import Animated, { FadeInDown, FadeIn, useAnimatedStyle, withSpring, useSharedValue } from 'react-native-reanimated';
 import { useTheme } from '../contexts/ThemeContext';
-import { SPACING, TYPOGRAPHY, BORDER_RADIUS, SHADOWS } from '../constants/theme';
-import { initDatabase, getAllMembers, searchMembersByName, searchMembersByEvent, Member } from '../utils/membersDatabase';
+import { SPACING, TYPOGRAPHY, BORDER_RADIUS } from '../constants/theme';
+import { getAllMembers, searchMembersByName, searchMembersByEvent, Member, Event } from '../utils/membersDatabase';
 
-interface MembersHubScreenProps {
-  navigation: any;
+interface MemberWithEvents extends Member {
+  events: Event[];
 }
 
-export default function MembersHubScreen({ navigation }: MembersHubScreenProps) {
+export default function MembersHubScreen() {
   const { colors, isDarkMode } = useTheme();
+  const [members, setMembers] = useState<MemberWithEvents[]>([]);
+  const [filteredMembers, setFilteredMembers] = useState<MemberWithEvents[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [members, setMembers] = useState<Member[]>([]);
-  const [eventResults, setEventResults] = useState<{ eventName: string; members: Member[] }[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [expandedMemberId, setExpandedMemberId] = useState<number | null>(null);
-  const [searchMode, setSearchMode] = useState<'name' | 'event'>('name');
+  const [isLoading, setIsLoading] = useState(true);
+  const [expandedMemberId, setExpandedMemberId] = useState<string | null>(null);
+  const [searchByEvent, setSearchByEvent] = useState(false);
+  const [eventResults, setEventResults] = useState<{ eventName: string; members: MemberWithEvents[] }[]>([]);
 
   useEffect(() => {
-    loadData();
+    loadMembers();
   }, []);
 
-  const loadData = async () => {
-    try {
-      await initDatabase();
-      const allMembers = await getAllMembers();
-      setMembers(allMembers);
-    } catch (error) {
-      console.error('Error loading members:', error);
-    } finally {
-      setLoading(false);
-    }
+  const loadMembers = async () => {
+    setIsLoading(true);
+    const allMembers = await getAllMembers();
+    setMembers(allMembers);
+    setFilteredMembers(allMembers);
+    setIsLoading(false);
   };
 
   const handleSearch = async (query: string) => {
     setSearchQuery(query);
-
+    
     if (!query.trim()) {
-      const allMembers = await getAllMembers();
-      setMembers(allMembers);
+      setFilteredMembers(members);
       setEventResults([]);
-      setSearchMode('name');
+      setSearchByEvent(false);
       return;
     }
 
-    // Try searching by name first
-    const memberResults = await searchMembersByName(query);
-    
-    // Also search by event
+    // Try searching by event first
     const eventSearchResults = await searchMembersByEvent(query);
-
+    
     if (eventSearchResults.length > 0) {
-      setSearchMode('event');
       setEventResults(eventSearchResults);
-      setMembers([]);
+      setSearchByEvent(true);
+      setFilteredMembers([]);
     } else {
-      setSearchMode('name');
-      setMembers(memberResults);
+      // Fall back to name search
+      const nameSearchResults = await searchMembersByName(query);
+      setFilteredMembers(nameSearchResults);
       setEventResults([]);
+      setSearchByEvent(false);
     }
   };
 
-  const toggleMemberExpand = (memberId: number) => {
+  const toggleMemberExpansion = (memberId: string) => {
     setExpandedMemberId(expandedMemberId === memberId ? null : memberId);
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
-      <View style={[styles.loadingContainer, { backgroundColor: isDarkMode ? '#0F1419' : '#D4E3F7' }]}>
-        <ActivityIndicator size="large" color={colors.primary} />
-        <Text style={[styles.loadingText, { color: colors.text }]}>Loading Members...</Text>
+      <View style={[styles.container, { backgroundColor: isDarkMode ? '#0A0E13' : '#E8EDF2' }]}>
+        <SafeAreaView style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={[styles.loadingText, { color: colors.textSecondary }]}>Loading members...</Text>
+        </SafeAreaView>
       </View>
     );
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: isDarkMode ? '#0F1419' : '#D4E3F7' }]}>
+    <View style={[styles.container, { backgroundColor: isDarkMode ? '#0A0E13' : '#E8EDF2' }]}>
       <SafeAreaView style={styles.safeArea} edges={['top']}>
         {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <MaterialIcons name="arrow-back" size={24} color={colors.text} />
-          </TouchableOpacity>
-          <View style={styles.headerTextContainer}>
-            <Text style={[styles.headerTitle, { color: colors.text }]}>Member Hub</Text>
-            <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
-              {members.length + eventResults.reduce((acc, e) => acc + e.members.length, 0)} members
-            </Text>
+        <View style={[styles.header, { backgroundColor: isDarkMode ? '#1A1F2E' : '#FFFFFF', borderBottomColor: isDarkMode ? '#2A3142' : '#E0E0E0' }]}>
+          <View style={styles.headerContent}>
+            <MaterialIcons name="people" size={28} color={colors.primary} />
+            <Text style={[styles.headerTitle, { color: colors.text }]}>Members Hub</Text>
           </View>
+          <Text style={[styles.memberCount, { color: colors.textSecondary }]}>
+            {members.length} members
+          </Text>
         </View>
 
         {/* Search Bar */}
-        <Animated.View entering={FadeInDown.delay(100).springify()} style={styles.searchContainer}>
-          <BlurView 
-            intensity={isDarkMode ? 30 : 90} 
-            tint={isDarkMode ? 'dark' : 'light'}
-            style={[styles.searchBlur, SHADOWS.small]}
-          >
-            <View style={[styles.searchInner, { 
-              borderColor: isDarkMode ? 'rgba(90, 159, 238, 0.3)' : 'rgba(255, 255, 255, 0.8)', 
-              borderWidth: 1,
-              backgroundColor: isDarkMode ? 'rgba(20, 25, 30, 0.6)' : 'rgba(255, 255, 255, 0.95)'
-            }]}>
-              <MaterialIcons name="search" size={20} color={colors.textLight} />
-              <TextInput
-                style={[styles.searchInput, { color: colors.text }]}
-                placeholder="Search by name or event..."
-                placeholderTextColor={colors.textLight}
-                value={searchQuery}
-                onChangeText={handleSearch}
-              />
-              {searchQuery.length > 0 && (
-                <TouchableOpacity onPress={() => handleSearch('')} activeOpacity={0.7}>
-                  <MaterialIcons name="close" size={18} color={colors.textLight} />
-                </TouchableOpacity>
-              )}
-            </View>
-          </BlurView>
-        </Animated.View>
+        <View style={styles.searchContainer}>
+          <View style={[styles.searchBar, { backgroundColor: isDarkMode ? '#1A1F2E' : '#FFFFFF', borderColor: isDarkMode ? '#2A3142' : '#E0E0E0' }]}>
+            <MaterialIcons name="search" size={22} color={colors.textLight} />
+            <TextInput
+              style={[styles.searchInput, { color: colors.text }]}
+              placeholder="Search by name or event..."
+              placeholderTextColor={colors.textLight}
+              value={searchQuery}
+              onChangeText={handleSearch}
+            />
+            {searchQuery.length > 0 && (
+              <TouchableOpacity onPress={() => handleSearch('')} activeOpacity={0.7}>
+                <MaterialIcons name="close" size={20} color={colors.textLight} />
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
 
         {/* Members List */}
         <ScrollView 
-          showsVerticalScrollIndicator={false}
+          style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
         >
-          {searchMode === 'name' && members.map((member, index) => (
-            <MemberCard
-              key={member.id}
-              member={member}
-              index={index}
-              colors={colors}
-              isDarkMode={isDarkMode}
-              isExpanded={expandedMemberId === member.id}
-              onToggle={() => toggleMemberExpand(member.id)}
-            />
-          ))}
-
-          {searchMode === 'event' && eventResults.map((eventGroup, groupIndex) => (
-            <Animated.View key={groupIndex} entering={FadeInDown.delay(groupIndex * 50).springify()}>
-              <View style={styles.eventGroupHeader}>
-                <MaterialIcons name="event" size={20} color={colors.primary} />
-                <Text style={[styles.eventGroupTitle, { color: colors.text }]}>
-                  {eventGroup.eventName}
-                </Text>
-                <View style={[styles.eventBadge, { backgroundColor: colors.primary + '20' }]}>
-                  <Text style={[styles.eventBadgeText, { color: colors.primary }]}>
-                    {eventGroup.members.length}
-                  </Text>
+          {searchByEvent ? (
+            // Event-based results
+            eventResults.map((eventResult, eventIndex) => (
+              <Animated.View key={eventResult.eventName} entering={FadeInDown.delay(eventIndex * 50).springify()}>
+                <View style={styles.eventSection}>
+                  <View style={[styles.eventHeader, { backgroundColor: isDarkMode ? '#1A1F2E' : '#FFFFFF' }]}>
+                    <MaterialIcons name="event" size={20} color={colors.primary} />
+                    <Text style={[styles.eventName, { color: colors.text }]}>{eventResult.eventName}</Text>
+                    <Text style={[styles.eventMemberCount, { color: colors.textSecondary }]}>
+                      {eventResult.members.length} {eventResult.members.length === 1 ? 'member' : 'members'}
+                    </Text>
+                  </View>
+                  {eventResult.members.map((member, memberIndex) => (
+                    <MemberCard
+                      key={member.id}
+                      member={member}
+                      index={memberIndex}
+                      colors={colors}
+                      isDarkMode={isDarkMode}
+                      isExpanded={expandedMemberId === member.id}
+                      onToggle={() => toggleMemberExpansion(member.id)}
+                    />
+                  ))}
                 </View>
-              </View>
+              </Animated.View>
+            ))
+          ) : (
+            // Name-based results
+            filteredMembers.map((member, index) => (
+              <MemberCard
+                key={member.id}
+                member={member}
+                index={index}
+                colors={colors}
+                isDarkMode={isDarkMode}
+                isExpanded={expandedMemberId === member.id}
+                onToggle={() => toggleMemberExpansion(member.id)}
+              />
+            ))
+          )}
 
-              {eventGroup.members.map((member, memberIndex) => (
-                <MemberCard
-                  key={member.id}
-                  member={member}
-                  index={memberIndex}
-                  colors={colors}
-                  isDarkMode={isDarkMode}
-                  isExpanded={expandedMemberId === member.id}
-                  onToggle={() => toggleMemberExpand(member.id)}
-                />
-              ))}
-            </Animated.View>
-          ))}
-
-          {members.length === 0 && eventResults.length === 0 && searchQuery.trim() !== '' && (
-            <Animated.View entering={FadeInDown.delay(200).springify()} style={styles.noResults}>
+          {!searchByEvent && filteredMembers.length === 0 && searchQuery.length > 0 && (
+            <Animated.View entering={FadeIn} style={styles.noResults}>
               <MaterialIcons name="search-off" size={64} color={colors.textLight} />
               <Text style={[styles.noResultsText, { color: colors.textSecondary }]}>
                 No members found for &quot;{searchQuery}&quot;
@@ -183,7 +169,7 @@ export default function MembersHubScreen({ navigation }: MembersHubScreenProps) 
 }
 
 interface MemberCardProps {
-  member: Member;
+  member: MemberWithEvents;
   index: number;
   colors: any;
   isDarkMode: boolean;
@@ -198,94 +184,85 @@ function MemberCard({ member, index, colors, isDarkMode, isExpanded, onToggle }:
     return {
       height: withSpring(isExpanded ? heightValue.value : 0, {
         damping: 15,
-        stiffness: 150,
+        stiffness: 100,
       }),
-      opacity: withSpring(isExpanded ? 1 : 0, {
-        damping: 15,
-        stiffness: 150,
-      }),
+      opacity: withSpring(isExpanded ? 1 : 0),
     };
   });
 
+  useEffect(() => {
+    if (isExpanded) {
+      heightValue.value = member.events.length > 0 ? 120 + (member.events.length * 40) : 120;
+    }
+  }, [isExpanded, member.events.length]);
+
   return (
-    <Animated.View entering={FadeInDown.delay(index * 30).springify()}>
-      <TouchableOpacity onPress={onToggle} activeOpacity={0.9}>
-        <BlurView 
-          intensity={isDarkMode ? 25 : 85} 
-          tint={isDarkMode ? 'dark' : 'light'}
-          style={[styles.memberCard, SHADOWS.small]}
-        >
-          <View style={[styles.memberCardInner, { 
-            borderColor: isDarkMode ? 'rgba(90, 159, 238, 0.25)' : 'rgba(255, 255, 255, 0.9)', 
-            borderWidth: 0.5,
-            backgroundColor: isDarkMode ? 'rgba(20, 25, 30, 0.5)' : 'rgba(255, 255, 255, 0.98)'
-          }]}>
-            {/* Member Header */}
-            <View style={styles.memberHeader}>
-              <View style={[styles.avatar, { backgroundColor: colors.primary }]}>
-                <Text style={styles.avatarText}>{member.initials}</Text>
-              </View>
-              
-              <View style={styles.memberInfo}>
-                <Text style={[styles.memberName, { color: colors.text }]} numberOfLines={1}>
-                  {member.name}
-                </Text>
-                <Text style={[styles.memberBio, { color: colors.textSecondary }]} numberOfLines={isExpanded ? undefined : 1}>
-                  {member.bio}
-                </Text>
-              </View>
+    <Animated.View entering={FadeInDown.delay(index * 30).springify()} style={styles.memberCardContainer}>
+      <TouchableOpacity 
+        onPress={onToggle}
+        activeOpacity={0.7}
+        style={[
+          styles.memberCard,
+          { 
+            backgroundColor: isDarkMode ? '#1A1F2E' : '#FFFFFF',
+            borderColor: isDarkMode ? '#2A3142' : '#E0E0E0',
+          }
+        ]}
+      >
+        {/* Avatar */}
+        <View style={[styles.avatar, { backgroundColor: colors.primary + '20' }]}>
+          <Text style={[styles.avatarText, { color: colors.primary }]}>{member.initials}</Text>
+        </View>
 
-              <MaterialIcons 
-                name={isExpanded ? 'keyboard-arrow-up' : 'keyboard-arrow-down'} 
-                size={24} 
-                color={colors.textLight} 
-              />
-            </View>
-
-            {/* Expanded Content */}
-            {isExpanded && (
-              <Animated.View 
-                style={[styles.expandedContent]}
-                onLayout={(e) => {
-                  heightValue.value = e.nativeEvent.layout.height;
-                }}
-              >
-                <View style={[styles.divider, { backgroundColor: colors.divider }]} />
-                
-                <View style={styles.eventsSection}>
-                  <View style={styles.eventsSectionHeader}>
-                    <MaterialIcons name="event-note" size={18} color={colors.primary} />
-                    <Text style={[styles.eventsSectionTitle, { color: colors.text }]}>
-                      Events ({member.events.length})
-                    </Text>
-                  </View>
-
-                  {member.events.slice(0, 2).map((event, idx) => (
-                    <View key={idx} style={[styles.eventChip, { backgroundColor: colors.primary + '15' }]}>
-                      <MaterialIcons name="circle" size={6} color={colors.primary} />
-                      <Text style={[styles.eventChipText, { color: colors.text }]} numberOfLines={1}>
-                        {event}
-                      </Text>
-                    </View>
-                  ))}
-
-                  {member.events.length > 2 && (
-                    <Text style={[styles.moreEventsText, { color: colors.textLight }]}>
-                      +{member.events.length - 2} more event{member.events.length - 2 > 1 ? 's' : ''}
-                    </Text>
-                  )}
-
-                  {member.events.length === 0 && (
-                    <Text style={[styles.noEventsText, { color: colors.textLight }]}>
-                      No events yet
-                    </Text>
-                  )}
-                </View>
-              </Animated.View>
-            )}
+        {/* Member Info */}
+        <View style={styles.memberInfo}>
+          <Text style={[styles.memberName, { color: colors.text }]} numberOfLines={1}>
+            {member.name}
+          </Text>
+          <Text style={[styles.memberBio, { color: colors.textSecondary }]} numberOfLines={1}>
+            {member.bio}
+          </Text>
+          <View style={styles.eventBadge}>
+            <MaterialIcons name="event" size={14} color={colors.textLight} />
+            <Text style={[styles.eventCount, { color: colors.textLight }]}>
+              {member.events.length} {member.events.length === 1 ? 'event' : 'events'}
+            </Text>
           </View>
-        </BlurView>
+        </View>
+
+        {/* Expand Icon */}
+        <MaterialIcons 
+          name={isExpanded ? 'keyboard-arrow-up' : 'keyboard-arrow-down'} 
+          size={24} 
+          color={colors.textLight} 
+        />
       </TouchableOpacity>
+
+      {/* Expanded Content */}
+      <Animated.View style={[styles.expandedContent, animatedStyle]}>
+        <View style={[styles.expandedInner, { backgroundColor: isDarkMode ? '#141824' : '#F5F7FA' }]}>
+          <Text style={[styles.expandedBio, { color: colors.text }]}>{member.bio}</Text>
+          
+          {member.events.length > 0 && (
+            <View style={styles.eventsSection}>
+              <Text style={[styles.eventsTitle, { color: colors.textSecondary }]}>Competing in:</Text>
+              {member.events.slice(0, 2).map((event, idx) => (
+                <View key={event.id} style={[styles.eventItem, { backgroundColor: isDarkMode ? '#1A1F2E' : '#FFFFFF' }]}>
+                  <MaterialIcons name="star" size={16} color={colors.accent} />
+                  <Text style={[styles.eventItemText, { color: colors.text }]} numberOfLines={1}>
+                    {event.name}
+                  </Text>
+                </View>
+              ))}
+              {member.events.length > 2 && (
+                <Text style={[styles.moreEvents, { color: colors.textLight }]}>
+                  +{member.events.length - 2} more {member.events.length - 2 === 1 ? 'event' : 'events'}
+                </Text>
+              )}
+            </View>
+          )}
+        </View>
+      </Animated.View>
     </Animated.View>
   );
 }
@@ -307,155 +284,152 @@ const styles = StyleSheet.create({
     marginTop: SPACING.md,
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
     paddingHorizontal: SPACING.lg,
     paddingVertical: SPACING.md,
+    borderBottomWidth: 1,
   },
-  backButton: {
-    marginRight: SPACING.md,
-  },
-  headerTextContainer: {
-    flex: 1,
+  headerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
+    marginBottom: SPACING.xs,
   },
   headerTitle: {
     ...TYPOGRAPHY.h2,
     fontSize: 24,
   },
-  headerSubtitle: {
-    ...TYPOGRAPHY.caption,
-    marginTop: 2,
+  memberCount: {
+    ...TYPOGRAPHY.bodySmall,
+    fontWeight: '500',
   },
   searchContainer: {
     paddingHorizontal: SPACING.lg,
-    marginBottom: SPACING.md,
+    paddingVertical: SPACING.md,
   },
-  searchBlur: {
-    borderRadius: 12,
-    overflow: 'hidden',
-  },
-  searchInner: {
+  searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.sm,
-    borderRadius: 12,
+    borderRadius: BORDER_RADIUS.md,
+    borderWidth: 1,
+    gap: SPACING.sm,
   },
   searchInput: {
     flex: 1,
     ...TYPOGRAPHY.body,
-    marginLeft: SPACING.sm,
     paddingVertical: SPACING.xs,
   },
-  scrollContent: {
-    paddingBottom: 120,
-  },
-  eventGroupHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: SPACING.lg,
-    paddingVertical: SPACING.sm,
-    gap: SPACING.sm,
-  },
-  eventGroupTitle: {
-    ...TYPOGRAPHY.h3,
-    fontSize: 16,
+  scrollView: {
     flex: 1,
   },
-  eventBadge: {
-    paddingHorizontal: SPACING.sm,
-    paddingVertical: 2,
-    borderRadius: BORDER_RADIUS.full,
+  scrollContent: {
+    paddingHorizontal: SPACING.lg,
+    paddingBottom: 100,
   },
-  eventBadgeText: {
-    ...TYPOGRAPHY.caption,
-    fontWeight: '700',
-    fontSize: 11,
+  eventSection: {
+    marginBottom: SPACING.lg,
   },
-  memberCard: {
-    borderRadius: 14,
-    marginHorizontal: SPACING.lg,
-    marginBottom: SPACING.xs,
-    overflow: 'hidden',
-  },
-  memberCardInner: {
-    padding: SPACING.md,
-    borderRadius: 14,
-  },
-  memberHeader: {
+  eventHeader: {
     flexDirection: 'row',
     alignItems: 'center',
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    borderRadius: BORDER_RADIUS.md,
+    marginBottom: SPACING.sm,
+    gap: SPACING.sm,
+  },
+  eventName: {
+    ...TYPOGRAPHY.bodyMedium,
+    fontWeight: '600',
+    flex: 1,
+  },
+  eventMemberCount: {
+    ...TYPOGRAPHY.caption,
+    fontWeight: '500',
+  },
+  memberCardContainer: {
+    marginBottom: SPACING.sm,
+  },
+  memberCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: SPACING.md,
+    borderRadius: BORDER_RADIUS.md,
+    borderWidth: 1,
+    gap: SPACING.md,
   },
   avatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    alignItems: 'center',
+    width: 50,
+    height: 50,
+    borderRadius: 8,
     justifyContent: 'center',
-    marginRight: SPACING.md,
+    alignItems: 'center',
   },
   avatarText: {
-    color: '#FFFFFF',
+    ...TYPOGRAPHY.h3,
     fontSize: 18,
     fontWeight: '700',
   },
   memberInfo: {
     flex: 1,
-    marginRight: SPACING.sm,
+    gap: SPACING.xs,
   },
   memberName: {
     ...TYPOGRAPHY.bodyMedium,
     fontWeight: '600',
-    marginBottom: 2,
   },
   memberBio: {
+    ...TYPOGRAPHY.bodySmall,
+  },
+  eventBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 2,
+  },
+  eventCount: {
     ...TYPOGRAPHY.caption,
-    lineHeight: 16,
+    fontWeight: '500',
   },
   expandedContent: {
     overflow: 'hidden',
   },
-  divider: {
-    height: 1,
-    marginVertical: SPACING.sm,
+  expandedInner: {
+    padding: SPACING.md,
+    borderBottomLeftRadius: BORDER_RADIUS.md,
+    borderBottomRightRadius: BORDER_RADIUS.md,
+    marginTop: -BORDER_RADIUS.md,
+    paddingTop: SPACING.md + BORDER_RADIUS.md,
+  },
+  expandedBio: {
+    ...TYPOGRAPHY.body,
+    marginBottom: SPACING.md,
+    lineHeight: 22,
   },
   eventsSection: {
-    paddingTop: SPACING.xs,
-  },
-  eventsSectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
     gap: SPACING.xs,
-    marginBottom: SPACING.sm,
   },
-  eventsSectionTitle: {
+  eventsTitle: {
     ...TYPOGRAPHY.bodySmall,
     fontWeight: '600',
+    marginBottom: SPACING.xs,
   },
-  eventChip: {
+  eventItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: SPACING.sm,
-    paddingVertical: SPACING.xs,
-    borderRadius: 8,
-    marginBottom: SPACING.xs,
-    gap: SPACING.xs,
+    padding: SPACING.sm,
+    borderRadius: BORDER_RADIUS.sm,
+    gap: SPACING.sm,
   },
-  eventChipText: {
-    ...TYPOGRAPHY.caption,
-    fontWeight: '500',
+  eventItemText: {
+    ...TYPOGRAPHY.bodySmall,
     flex: 1,
   },
-  moreEventsText: {
+  moreEvents: {
     ...TYPOGRAPHY.caption,
     fontStyle: 'italic',
     marginTop: SPACING.xs,
-    marginLeft: SPACING.sm,
-  },
-  noEventsText: {
-    ...TYPOGRAPHY.caption,
-    fontStyle: 'italic',
-    marginLeft: SPACING.sm,
   },
   noResults: {
     alignItems: 'center',

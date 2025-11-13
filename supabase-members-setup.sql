@@ -1,4 +1,3 @@
-
 -- Create members table
 CREATE TABLE IF NOT EXISTS fbla_members (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
