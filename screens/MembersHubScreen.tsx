@@ -1,11 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, ActivityIndicator, Animated, LayoutAnimation, Platform, UIManager } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
-import Animated, { FadeInDown, FadeIn, useAnimatedStyle, withSpring, useSharedValue } from 'react-native-reanimated';
 import { useTheme } from '../contexts/ThemeContext';
 import { SPACING, TYPOGRAPHY, BORDER_RADIUS } from '../constants/theme';
 import { getAllMembers, searchMembersByName, searchMembersByEvent, Member, Event } from '../utils/membersDatabase';
+
+// Enable LayoutAnimation on Android
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 
 interface MemberWithEvents extends Member {
   events: Event[];
@@ -60,6 +64,8 @@ export default function MembersHubScreen() {
   };
 
   const toggleMemberExpansion = (memberId: string) => {
+    // Configure LayoutAnimation for smooth expansion
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setExpandedMemberId(expandedMemberId === memberId ? null : memberId);
   };
 
@@ -112,11 +118,12 @@ export default function MembersHubScreen() {
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
+          removeClippedSubviews={false}
         >
           {searchByEvent ? (
             // Event-based results
             eventResults.map((eventResult, eventIndex) => (
-              <Animated.View key={eventResult.eventName} entering={FadeInDown.delay(eventIndex * 50).springify()}>
+              <View key={eventResult.eventName}>
                 <View style={styles.eventSection}>
                   <View style={[styles.eventHeader, { backgroundColor: isDarkMode ? '#1A1F2E' : '#FFFFFF' }]}>
                     <MaterialIcons name="event" size={20} color={colors.primary} />
@@ -129,7 +136,6 @@ export default function MembersHubScreen() {
                     <MemberCard
                       key={member.id}
                       member={member}
-                      index={memberIndex}
                       colors={colors}
                       isDarkMode={isDarkMode}
                       isExpanded={expandedMemberId === member.id}
@@ -137,15 +143,14 @@ export default function MembersHubScreen() {
                     />
                   ))}
                 </View>
-              </Animated.View>
+              </View>
             ))
           ) : (
             // Name-based results
-            filteredMembers.map((member, index) => (
+            filteredMembers.map((member) => (
               <MemberCard
                 key={member.id}
                 member={member}
-                index={index}
                 colors={colors}
                 isDarkMode={isDarkMode}
                 isExpanded={expandedMemberId === member.id}
@@ -155,12 +160,12 @@ export default function MembersHubScreen() {
           )}
 
           {!searchByEvent && filteredMembers.length === 0 && searchQuery.length > 0 && (
-            <Animated.View entering={FadeIn} style={styles.noResults}>
+            <View style={styles.noResults}>
               <MaterialIcons name="search-off" size={64} color={colors.textLight} />
               <Text style={[styles.noResultsText, { color: colors.textSecondary }]}>
                 No members found for &quot;{searchQuery}&quot;
               </Text>
-            </Animated.View>
+            </View>
           )}
         </ScrollView>
       </SafeAreaView>
@@ -170,34 +175,36 @@ export default function MembersHubScreen() {
 
 interface MemberCardProps {
   member: MemberWithEvents;
-  index: number;
   colors: any;
   isDarkMode: boolean;
   isExpanded: boolean;
   onToggle: () => void;
 }
 
-function MemberCard({ member, index, colors, isDarkMode, isExpanded, onToggle }: MemberCardProps) {
-  const heightValue = useSharedValue(0);
-
-  const animatedStyle = useAnimatedStyle(() => {
-    return {
-      height: withSpring(isExpanded ? heightValue.value : 0, {
-        damping: 15,
-        stiffness: 100,
-      }),
-      opacity: withSpring(isExpanded ? 1 : 0),
-    };
-  });
+// Wrap in React.memo to prevent unnecessary re-renders
+const MemberCard = React.memo(({ member, colors, isDarkMode, isExpanded, onToggle }: MemberCardProps) => {
+  const FIXED_EXPANDED_HEIGHT = 220;
+  const heightAnim = useRef(new Animated.Value(0)).current;
+  const opacityAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    if (isExpanded) {
-      heightValue.value = member.events.length > 0 ? 120 + (member.events.length * 40) : 120;
-    }
-  }, [isExpanded, member.events.length]);
+    // Animate height and opacity when expanded state changes
+    Animated.parallel([
+      Animated.timing(heightAnim, {
+        toValue: isExpanded ? FIXED_EXPANDED_HEIGHT : 0,
+        duration: 200,
+        useNativeDriver: false, // height cannot use native driver
+      }),
+      Animated.timing(opacityAnim, {
+        toValue: isExpanded ? 1 : 0,
+        duration: 200,
+        useNativeDriver: true, // opacity can use native driver
+      }),
+    ]).start();
+  }, [isExpanded]);
 
   return (
-    <Animated.View entering={FadeInDown.delay(index * 30).springify()} style={styles.memberCardContainer}>
+    <View style={styles.memberCardContainer}>
       <TouchableOpacity 
         onPress={onToggle}
         activeOpacity={0.7}
@@ -239,14 +246,22 @@ function MemberCard({ member, index, colors, isDarkMode, isExpanded, onToggle }:
       </TouchableOpacity>
 
       {/* Expanded Content */}
-      <Animated.View style={[styles.expandedContent, animatedStyle]}>
+      <Animated.View 
+        style={[
+          styles.expandedContent, 
+          { 
+            height: heightAnim,
+            opacity: opacityAnim,
+          }
+        ]}
+      >
         <View style={[styles.expandedInner, { backgroundColor: isDarkMode ? '#141824' : '#F5F7FA' }]}>
           <Text style={[styles.expandedBio, { color: colors.text }]}>{member.bio}</Text>
           
           {member.events.length > 0 && (
             <View style={styles.eventsSection}>
               <Text style={[styles.eventsTitle, { color: colors.textSecondary }]}>Competing in:</Text>
-              {member.events.slice(0, 2).map((event, idx) => (
+              {member.events.slice(0, 2).map((event) => (
                 <View key={event.id} style={[styles.eventItem, { backgroundColor: isDarkMode ? '#1A1F2E' : '#FFFFFF' }]}>
                   <MaterialIcons name="star" size={16} color={colors.accent} />
                   <Text style={[styles.eventItemText, { color: colors.text }]} numberOfLines={1}>
@@ -263,9 +278,9 @@ function MemberCard({ member, index, colors, isDarkMode, isExpanded, onToggle }:
           )}
         </View>
       </Animated.View>
-    </Animated.View>
+    </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   container: {
