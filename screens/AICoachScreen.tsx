@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { FloatingTTSButton } from '../components/FloatingTTSButton';
 import { 
   View, 
   Text, 
@@ -406,6 +407,12 @@ export default function AICoachScreen({ navigation }: AICoachScreenProps) {
             </BlurView>
           </Animated.View>
         </KeyboardAvoidingView>
+        {/* Floating TTS Button */}
+        <FloatingTTSButton 
+          content={`AI Coach Screen. 
+            ${messages.length === 0 ? `${motivationalQuote}. Ask me about FBLA events, leadership tips, or competition strategies.` : `You have ${messages.length} messages in this conversation.`}
+            ${recommendedEvents.length > 0 ? `${recommendedEvents.length} recommended events.` : ''}`}
+        />
       </SafeAreaView>
     </View>
   );

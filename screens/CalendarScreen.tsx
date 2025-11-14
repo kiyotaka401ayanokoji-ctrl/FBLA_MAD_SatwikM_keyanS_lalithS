@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { FloatingTTSButton } from '../components/FloatingTTSButton';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -90,6 +91,13 @@ export default function CalendarScreen({ navigation }: CalendarScreenProps) {
           />
         ))}
       </ScrollView>
+      <FloatingTTSButton 
+        content={`Event Calendar. 
+          Current filter: ${selectedFilter === 'all' ? 'All Events' : filters.find(f => f.id === selectedFilter)?.label || selectedFilter}. 
+          ${filteredEvents.length} ${filteredEvents.length === 1 ? 'event' : 'events'} found. 
+          ${filteredEvents.map(e => `${e.title} on ${e.date}`).join('. ')}`}
+      />
+      
     </SafeAreaView>
   );
 }

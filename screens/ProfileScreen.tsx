@@ -1,19 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import * as ImagePicker from 'expo-image-picker';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSupabaseAuth } from '../contexts/SupabaseAuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { SPACING, TYPOGRAPHY, BORDER_RADIUS, SHADOWS } from '../constants/theme';
+import { FloatingTTSButton } from '../components/FloatingTTSButton';
+
+const TTS_ENABLED_KEY = '@tts_enabled';
 
 export default function ProfileScreen() {
   const { user, signOut, updateProfile } = useSupabaseAuth();
   const { colors, isDarkMode, toggleTheme } = useTheme();
   const [isEditing, setIsEditing] = useState(false);
   const [profileImage, setProfileImage] = useState<string | null>(null);
+  const [ttsEnabled, setTtsEnabled] = useState(false);
   const [profile, setProfile] = useState(user || {
     name: '',
     email: '',
@@ -23,6 +28,34 @@ export default function ProfileScreen() {
     bio: '',
     memberSince: '',
   });
+
+  useEffect(() => {
+    loadTTSPreference();
+  }, []);
+
+  const loadTTSPreference = async () => {
+    try {
+      const enabled = await AsyncStorage.getItem(TTS_ENABLED_KEY);
+      setTtsEnabled(enabled === 'true');
+    } catch (error) {
+      console.error('Error loading TTS preference:', error);
+    }
+  };
+
+  const toggleTTS = async () => {
+    try {
+      const newValue = !ttsEnabled;
+      await AsyncStorage.setItem(TTS_ENABLED_KEY, String(newValue));
+      setTtsEnabled(newValue);
+      Alert.alert(
+        'Text-to-Speech',
+        `Text-to-Speech has been ${newValue ? 'enabled' : 'disabled'}. A speaker button will ${newValue ? 'appear' : 'disappear'} on all pages.`
+      );
+    } catch (error) {
+      console.error('Error saving TTS preference:', error);
+      Alert.alert('Error', 'Failed to update TTS setting');
+    }
+  };
 
   const handleSave = async () => {
     try {
@@ -141,6 +174,18 @@ export default function ProfileScreen() {
     );
   }
 
+  const ttsContent = `
+    Profile Screen.
+    Name: ${profile.name || 'Not set'}.
+    Position: ${profile.position || 'Not set'}.
+    Chapter: ${profile.chapter || 'Not set'}.
+    Email: ${profile.email || 'Not set'}.
+    Phone: ${profile.phone || 'Not set'}.
+    Bio: ${profile.bio || 'Not set'}.
+    Events Attended: ${user?.eventsAttended || 0}.
+    Days as Member: ${profile.memberSince ? Math.floor((Date.now() - new Date(profile.memberSince).getTime()) / (1000 * 60 * 60 * 24)) : 0}.
+  `;
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: isDarkMode ? '#0F1419' : '#D4E3F7' }]} edges={['top']}>
       <View style={styles.header}>
@@ -161,7 +206,6 @@ export default function ProfileScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.content}
       >
-        {/* Profile Header */}
         <Animated.View entering={FadeIn.duration(600)}>
           <BlurView 
             intensity={isDarkMode ? 45 : 95} 
@@ -198,7 +242,6 @@ export default function ProfileScreen() {
           </BlurView>
         </Animated.View>
 
-        {/* Stats */}
         <Animated.View entering={FadeInDown.delay(200).springify()}>
           <BlurView 
             intensity={isDarkMode ? 45 : 95} 
@@ -227,7 +270,6 @@ export default function ProfileScreen() {
           </BlurView>
         </Animated.View>
 
-        {/* Profile Information */}
         <Animated.View entering={FadeInDown.delay(300).springify()}>
           <BlurView 
             intensity={isDarkMode ? 45 : 95} 
@@ -249,7 +291,6 @@ export default function ProfileScreen() {
           </BlurView>
         </Animated.View>
 
-        {/* Settings */}
         <Animated.View entering={FadeInDown.delay(400).springify()}>
           <BlurView 
             intensity={isDarkMode ? 45 : 95} 
@@ -270,6 +311,16 @@ export default function ProfileScreen() {
                 </View>
                 <View style={[styles.toggle, { backgroundColor: isDarkMode ? colors.primary : colors.border }]}>
                   <View style={[styles.toggleThumb, { transform: [{ translateX: isDarkMode ? 20 : 0 }] }]} />
+                </View>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={[styles.settingItem, { borderBottomColor: colors.divider }]} onPress={toggleTTS}>
+                <View style={styles.settingLeft}>
+                  <MaterialIcons name="record-voice-over" size={24} color={colors.textSecondary} />
+                  <Text style={[styles.settingText, { color: colors.text }]}>Text-to-Speech</Text>
+                </View>
+                <View style={[styles.toggle, { backgroundColor: ttsEnabled ? colors.primary : colors.border }]}>
+                  <View style={[styles.toggleThumb, { transform: [{ translateX: ttsEnabled ? 20 : 0 }] }]} />
                 </View>
               </TouchableOpacity>
 
@@ -307,6 +358,8 @@ export default function ProfileScreen() {
           </BlurView>
         </Animated.View>
       </ScrollView>
+
+      <FloatingTTSButton content={ttsContent} />
     </SafeAreaView>
   );
 }

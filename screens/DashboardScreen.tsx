@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { FloatingTTSButton } from '../components/FloatingTTSButton';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated as RNAnimated, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -375,6 +376,13 @@ export default function DashboardScreen({ navigation }: DashboardScreenProps) {
             </View>
           </Animated.View>
         </ScrollView>
+        {/* Floating TTS Button */}
+        <FloatingTTSButton 
+          content={`Dashboard. Welcome back ${user?.name?.split(' ')[0] || 'Member'}. 
+            ${QUOTES[currentQuoteIndex]}. 
+            ${upcomingEvent ? `Next event: ${upcomingEvent.title} on ${upcomingEvent.date} at ${upcomingEvent.time}` : 'No upcoming events'}. 
+            You have 1 new announcement.`}
+        />
       </SafeAreaView>
     </View>
   );

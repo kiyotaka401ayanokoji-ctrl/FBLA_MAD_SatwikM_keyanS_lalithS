@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { FloatingTTSButton } from '../components/FloatingTTSButton';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -168,7 +169,20 @@ export default function EventDetailScreen({ route, navigation }: EventDetailScre
             </Text>
           </TouchableOpacity>
         </Animated.View>
+        
       </ScrollView>
+      <FloatingTTSButton 
+        content={`Event Details. 
+          ${event.title}. 
+          Category: ${event.category}. 
+          Date: ${event.date}. 
+          Time: ${event.time}. 
+          Location: ${event.location}. 
+          Attendees: ${event.attendees} registered. 
+          Description: ${event.description}. 
+          You are ${isRegistered ? 'registered' : 'not registered'} for this event.`}
+      />
+      
     </SafeAreaView>
   );
 }

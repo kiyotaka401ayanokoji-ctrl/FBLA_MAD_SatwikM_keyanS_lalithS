@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { FloatingTTSButton } from '../components/FloatingTTSButton';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Linking, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -258,6 +259,13 @@ export default function ResourcesScreen() {
             </Animated.View>
           )}
         </ScrollView>
+       {/* Floating TTS Button */}
+        <FloatingTTSButton 
+          content={`Resources Screen. 
+            ${filteredRubrics.length} event rubrics and guides available. 
+            ${filteredOfficial.length} official FBLA resources available.
+            ${searchQuery ? `Currently searching for: ${searchQuery}` : ''}`}
+        />
       </SafeAreaView>
     </View>
   );
