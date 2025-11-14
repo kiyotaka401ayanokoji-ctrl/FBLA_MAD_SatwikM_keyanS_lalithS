@@ -1,7 +1,6 @@
 import { useState, useCallback } from 'react';
 import { Platform } from 'react-native';
 
-// Only import expo-speech on native platforms
 let Speech: any = null;
 if (Platform.OS !== 'web') {
   Speech = require('expo-speech');
@@ -11,7 +10,6 @@ export const useTextToSpeech = () => {
   const [isSpeaking, setIsSpeaking] = useState(false);
 
   const speak = useCallback((text: string) => {
-    // No-op on web
     if (Platform.OS === 'web' || !Speech) {
       return;
     }
