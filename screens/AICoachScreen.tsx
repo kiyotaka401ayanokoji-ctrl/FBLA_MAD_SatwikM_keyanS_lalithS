@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useSupabaseAuth } from '../contexts/SupabaseAuthContext';
 import { FloatingTTSButton } from '../components/FloatingTTSButton';
 import { 
   View, 
@@ -17,7 +18,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import Animated, { FadeInDown, FadeInUp, FadeIn } from 'react-native-reanimated';
 import { useTheme } from '../contexts/ThemeContext';
-import { useAuth } from '../contexts/AuthContext';
+import { useSupabaseAuth as useAuth } from '../contexts/SupabaseAuthContext';
 import { generateAIResponse, getMotivationalQuote, Message } from '../utils/ai';
 import { mockEvents } from '../data/mockData';
 import { Event } from '../types';
@@ -407,11 +408,10 @@ export default function AICoachScreen({ navigation }: AICoachScreenProps) {
             </BlurView>
           </Animated.View>
         </KeyboardAvoidingView>
-        {/* Floating TTS Button */}
         <FloatingTTSButton 
-          content={`AI Coach Screen. 
-            ${messages.length === 0 ? `${motivationalQuote}. Ask me about FBLA events, leadership tips, or competition strategies.` : `You have ${messages.length} messages in this conversation.`}
-            ${recommendedEvents.length > 0 ? `${recommendedEvents.length} recommended events.` : ''}`}
+          content={`AI Coach. 
+            ${messages.length} ${messages.length === 1 ? 'message' : 'messages'} in chat. 
+            ${recommendedEvents.length} ${recommendedEvents.length === 1 ? 'recommended event' : 'recommended events'} found.`}
         />
       </SafeAreaView>
     </View>

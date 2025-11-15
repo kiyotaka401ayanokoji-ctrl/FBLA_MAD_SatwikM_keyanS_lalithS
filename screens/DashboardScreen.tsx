@@ -10,7 +10,6 @@ import { useSupabaseAuth } from '../contexts/SupabaseAuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { mockEvents } from '../data/mockData';
 import { SPACING, TYPOGRAPHY, SHADOWS } from '../constants/theme';
-//import { AnimatedMembersHubButton } from '../components/AnimatedMembersHubButton';
 
 const QUOTES = [
   'Connect. Lead. Inspire.',
@@ -22,6 +21,79 @@ const QUOTES = [
 
 interface DashboardScreenProps {
   navigation: any;
+}
+
+// Helper component functions defined before main component
+function QuickActionButton({ icon, color, onPress, colors, isDarkMode }: any) {
+  return (
+    <TouchableOpacity onPress={onPress} activeOpacity={0.85} style={styles.quickActionButton}>
+      <BlurView 
+        intensity={isDarkMode ? 40 : 95} 
+        tint={isDarkMode ? 'dark' : 'light'}
+        style={[styles.quickActionBlur, SHADOWS.medium]}
+      >
+        <View style={[styles.quickActionInner, { 
+          borderColor: isDarkMode ? 'rgba(90, 159, 238, 0.4)' : 'rgba(255, 255, 255, 0.7)', 
+          borderWidth: 1.5,
+          backgroundColor: isDarkMode ? 'transparent' : 'rgba(255, 255, 255, 0.9)'
+        }]}>
+          <View style={[styles.quickActionIcon, { backgroundColor: color + '20' }]}>
+            <MaterialIcons name={icon} size={32} color={color} />
+          </View>
+        </View>
+      </BlurView>
+    </TouchableOpacity>
+  );
+}
+
+function AnimatedMembersHubButton({ navigation, colors, isDarkMode, bubbleScale, bubbleRotate }: any) {
+  const animatedStyle = useAnimatedStyle(() => {
+    return {
+      transform: [
+        { scale: bubbleScale.value },
+        { rotate: `${bubbleRotate.value}deg` },
+      ],
+    };
+  });
+
+  return (
+    <Animated.View entering={FadeInDown.delay(350).springify()}>
+      <TouchableOpacity
+        activeOpacity={0.85}
+        onPress={() => navigation.navigate('MembersHub')}
+      >
+        <BlurView 
+          intensity={isDarkMode ? 45 : 95} 
+          tint={isDarkMode ? 'dark' : 'light'}
+          style={[styles.membersHubCard, SHADOWS.large]}
+        >
+          <View style={[styles.membersHubCardInner, { 
+            borderColor: isDarkMode ? 'rgba(90, 159, 238, 0.5)' : 'rgba(255, 255, 255, 0.7)', 
+            borderWidth: 1.5,
+            backgroundColor: isDarkMode ? 'transparent' : 'rgba(255, 255, 255, 0.9)'
+          }]}>
+            <View style={styles.membersHubHeader}>
+              <Animated.View style={[styles.membersHubIconContainer, { backgroundColor: colors.secondary }, animatedStyle]}>
+                <MaterialIcons name="forum" size={28} color="#FFFFFF" />
+              </Animated.View>
+              <View style={styles.membersHubHeaderText}>
+                <Text style={[styles.membersHubLabel, { color: colors.textLight }]}>
+                  CONNECT WITH TEAM
+                </Text>
+                <Text style={[styles.membersHubTitle, { color: colors.text }]}>
+                  Member Hub
+                </Text>
+              </View>
+              <MaterialIcons name="chevron-right" size={24} color={colors.primary} />
+            </View>
+            <Text style={[styles.membersHubDescription, { color: colors.textSecondary }]}>
+              Browse all members, search by name or event, and connect with your team
+            </Text>
+          </View>
+        </BlurView>
+      </TouchableOpacity>
+    </Animated.View>
+  );
 }
 
 export default function DashboardScreen({ navigation }: DashboardScreenProps) {
@@ -206,7 +278,7 @@ export default function DashboardScreen({ navigation }: DashboardScreenProps) {
             </TouchableOpacity>
           </Animated.View>
 
-          {/* Members Hub Button - NEW */}
+          {/* Members Hub Button */}
           <AnimatedMembersHubButton 
             navigation={navigation} 
             colors={colors} 
@@ -269,7 +341,7 @@ export default function DashboardScreen({ navigation }: DashboardScreenProps) {
           <Animated.View entering={FadeInDown.delay(600).springify()}>
             <TouchableOpacity
               activeOpacity={0.85}
-              onPress={() => navigation.navigate('NewsFeed')}
+              onPress={() => navigation.navigate('Announcements')}
             >
               <BlurView 
                 intensity={isDarkMode ? 40 : 95} 
@@ -305,7 +377,7 @@ export default function DashboardScreen({ navigation }: DashboardScreenProps) {
               <QuickActionButton
                 icon="article"
                 color={colors.secondary}
-                onPress={() => navigation.navigate('NewsFeed')}
+                onPress={() => navigation.navigate('Announcements')}
                 colors={colors}
                 isDarkMode={isDarkMode}
               />
@@ -376,6 +448,7 @@ export default function DashboardScreen({ navigation }: DashboardScreenProps) {
             </View>
           </Animated.View>
         </ScrollView>
+        
         {/* Floating TTS Button */}
         <FloatingTTSButton 
           content={`Dashboard. Welcome back ${user?.name?.split(' ')[0] || 'Member'}. 
@@ -385,78 +458,6 @@ export default function DashboardScreen({ navigation }: DashboardScreenProps) {
         />
       </SafeAreaView>
     </View>
-  );
-}
-
-function QuickActionButton({ icon, color, onPress, colors, isDarkMode }: any) {
-  return (
-    <TouchableOpacity onPress={onPress} activeOpacity={0.85} style={styles.quickActionButton}>
-      <BlurView 
-        intensity={isDarkMode ? 40 : 95} 
-        tint={isDarkMode ? 'dark' : 'light'}
-        style={[styles.quickActionBlur, SHADOWS.medium]}
-      >
-        <View style={[styles.quickActionInner, { 
-          borderColor: isDarkMode ? 'rgba(90, 159, 238, 0.4)' : 'rgba(255, 255, 255, 0.7)', 
-          borderWidth: 1.5,
-          backgroundColor: isDarkMode ? 'transparent' : 'rgba(255, 255, 255, 0.9)'
-        }]}>
-          <View style={[styles.quickActionIcon, { backgroundColor: color + '20' }]}>
-            <MaterialIcons name={icon} size={32} color={color} />
-          </View>
-        </View>
-      </BlurView>
-    </TouchableOpacity>
-  );
-}
-
-function AnimatedMembersHubButton({ navigation, colors, isDarkMode, bubbleScale, bubbleRotate }: any) {
-  const animatedStyle = useAnimatedStyle(() => {
-    return {
-      transform: [
-        { scale: bubbleScale.value },
-        { rotate: `${bubbleRotate.value}deg` },
-      ],
-    };
-  });
-
-  return (
-    <Animated.View entering={FadeInDown.delay(350).springify()}>
-      <TouchableOpacity
-        activeOpacity={0.85}
-        onPress={() => navigation.navigate('MembersHub')}
-      >
-        <BlurView 
-          intensity={isDarkMode ? 45 : 95} 
-          tint={isDarkMode ? 'dark' : 'light'}
-          style={[styles.membersHubCard, SHADOWS.large]}
-        >
-          <View style={[styles.membersHubCardInner, { 
-            borderColor: isDarkMode ? 'rgba(90, 159, 238, 0.5)' : 'rgba(255, 255, 255, 0.7)', 
-            borderWidth: 1.5,
-            backgroundColor: isDarkMode ? 'transparent' : 'rgba(255, 255, 255, 0.9)'
-          }]}>
-            <View style={styles.membersHubHeader}>
-              <Animated.View style={[styles.membersHubIconContainer, { backgroundColor: colors.secondary }, animatedStyle]}>
-                <MaterialIcons name="forum" size={28} color="#FFFFFF" />
-              </Animated.View>
-              <View style={styles.membersHubHeaderText}>
-                <Text style={[styles.membersHubLabel, { color: colors.textLight }]}>
-                  CONNECT WITH TEAM
-                </Text>
-                <Text style={[styles.membersHubTitle, { color: colors.text }]}>
-                  Member Hub
-                </Text>
-              </View>
-              <MaterialIcons name="chevron-right" size={24} color={colors.primary} />
-            </View>
-            <Text style={[styles.membersHubDescription, { color: colors.textSecondary }]}>
-              Browse all members, search by name or event, and connect with your team
-            </Text>
-          </View>
-        </BlurView>
-      </TouchableOpacity>
-    </Animated.View>
   );
 }
 
