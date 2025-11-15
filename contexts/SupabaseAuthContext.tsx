@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Session, User as SupabaseUser } from '@supabase/supabase-js';
+import { Session } from '@supabase/supabase-js';
 import { supabase } from '../utils/supabase';
 
 interface UserProfile {
@@ -12,6 +12,7 @@ interface UserProfile {
   bio: string;
   memberSince: string;
   eventsAttended?: number;
+  points?: number;
 }
 
 interface SupabaseAuthContextType {
@@ -32,7 +33,6 @@ export function SupabaseAuthProvider({ children }: { children: React.ReactNode }
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       if (session?.user) {
@@ -42,7 +42,6 @@ export function SupabaseAuthProvider({ children }: { children: React.ReactNode }
       }
     });
 
-    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       if (session?.user) {
@@ -77,15 +76,11 @@ export function SupabaseAuthProvider({ children }: { children: React.ReactNode }
           bio: data.bio,
           memberSince: data.member_since,
           eventsAttended: data.events_attended,
+          points: data.points,
         });
-      } else {
-        // No profile exists yet - this is okay, user might need to complete signup
-        console.log('No profile found for user:', userId);
-        setUser(null);
       }
     } catch (error) {
-      console.error('Error loading user profile:', error);
-      setUser(null);
+      console.error('Error loading profile:', error);
     } finally {
       setIsLoading(false);
     }
@@ -110,35 +105,62 @@ export function SupabaseAuthProvider({ children }: { children: React.ReactNode }
 
   const signUp = async (userData: Omit<UserProfile, 'id' | 'memberSince'> & { password: string }) => {
     try {
-      // Create auth user
+      console.log('🚀 Starting sign up process...');
+      console.log('📧 Email:', userData.email);
+      console.log('👤 Name:', userData.name);
+
+      // Step 1: Create auth user
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: userData.email,
         password: userData.password,
+        options: {
+          data: {
+            name: userData.name,
+          }
+        }
       });
 
-      if (authError) throw authError;
-
-      if (authData.user) {
-        // Create profile
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .insert({
-            id: authData.user.id,
-            email: userData.email,
-            name: userData.name,
-            chapter: userData.chapter,
-            position: userData.position,
-            phone: userData.phone,
-            bio: userData.bio,
-            member_since: new Date().toISOString().split('T')[0],
-            events_attended: 0,
-          });
-
-        if (profileError) throw profileError;
-
-        await loadUserProfile(authData.user.id);
+      if (authError) {
+        console.error('❌ Auth error:', authError);
+        throw authError;
       }
+
+      console.log('✅ Auth user created:', authData.user?.id);
+
+      if (!authData.user) {
+        throw new Error('No user returned from sign up');
+      }
+
+      // Step 2: Wait a moment for trigger to fire
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      // Step 3: Update the profile with full data
+      console.log('📝 Updating profile with full data...');
+      
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({
+          name: userData.name,
+          chapter: userData.chapter || '',
+          position: userData.position || '',
+          phone: userData.phone || '',
+          bio: userData.bio || '',
+        })
+        .eq('id', authData.user.id);
+
+      if (updateError) {
+        console.error('❌ Update error:', updateError);
+        throw updateError;
+      }
+
+      console.log('✅ Profile updated successfully!');
+
+      // Step 4: Load the complete profile
+      await loadUserProfile(authData.user.id);
+      
+      console.log('🎉 Sign up complete!');
     } catch (error: any) {
+      console.error('💥 Sign up failed:', error);
       throw new Error(error.message || 'Failed to sign up');
     }
   };
@@ -172,7 +194,6 @@ export function SupabaseAuthProvider({ children }: { children: React.ReactNode }
 
       if (error) throw error;
 
-      // Update local state
       setUser({ ...user, ...updates });
     } catch (error: any) {
       throw new Error(error.message || 'Failed to update profile');

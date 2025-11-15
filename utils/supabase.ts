@@ -1,13 +1,10 @@
-import 'react-native-url-polyfill/auto';
 import { createClient } from '@supabase/supabase-js';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Supabase configuration - HARDCODED for reliability
-const supabaseUrl = 'https://forddbtpuljnlagvogzu.supabase.co';
-const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZvcmRkYnRwdWxqbmxhZ3ZvZ3p1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI5MTE1NTMsImV4cCI6MjA3ODQ4NzU1M30.VCO7QjH8nleEKN357nQfbToUALThkXzqn2EXZEHLmcs';
+const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL!;
+const SUPABASE_ANON_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!;
 
-// Create Supabase client with AsyncStorage for session persistence
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: {
     storage: AsyncStorage,
     autoRefreshToken: true,
@@ -16,73 +13,97 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   },
 });
 
-// Database types (you'll update these based on your schema)
-export interface Database {
-  public: {
-    Tables: {
-      profiles: {
-        Row: {
-          id: string;
-          email: string;
-          name: string;
-          chapter: string;
-          position: string;
-          phone: string;
-          bio: string;
-          member_since: string;
-          events_attended: number;
-          created_at: string;
-          updated_at: string;
-        };
-        Insert: Omit<Database['public']['Tables']['profiles']['Row'], 'id' | 'created_at' | 'updated_at'>;
-        Update: Partial<Database['public']['Tables']['profiles']['Insert']>;
-      };
-      events: {
-        Row: {
-          id: string;
-          title: string;
-          date: string;
-          time: string;
-          location: string;
-          description: string;
-          category: 'meeting' | 'competition' | 'workshop' | 'social';
-          attendees: number;
-          created_at: string;
-          updated_at: string;
-        };
-        Insert: Omit<Database['public']['Tables']['events']['Row'], 'id' | 'created_at' | 'updated_at'>;
-        Update: Partial<Database['public']['Tables']['events']['Insert']>;
-      };
-      announcements: {
-        Row: {
-          id: string;
-          title: string;
-          content: string;
-          author: string;
-          category: 'announcement' | 'achievement' | 'reminder' | 'update';
-          likes: number;
-          created_at: string;
-          updated_at: string;
-        };
-        Insert: Omit<Database['public']['Tables']['announcements']['Row'], 'id' | 'created_at' | 'updated_at'>;
-        Update: Partial<Database['public']['Tables']['announcements']['Insert']>;
-      };
-      resources: {
-        Row: {
-          id: string;
-          title: string;
-          description: string;
-          category: 'guide' | 'template' | 'presentation' | 'document';
-          file_type: 'pdf' | 'doc' | 'ppt' | 'xlsx';
-          size: string;
-          url: string;
-          downloads: number;
-          created_at: string;
-          updated_at: string;
-        };
-        Insert: Omit<Database['public']['Tables']['resources']['Row'], 'id' | 'created_at' | 'updated_at'>;
-        Update: Partial<Database['public']['Tables']['resources']['Insert']>;
-      };
-    };
-  };
-}
+// Database helper functions
+export const db = {
+  // Get all events
+  async getEvents() {
+    const { data, error } = await supabase
+      .from('events')
+      .select('*')
+      .order('date', { ascending: true });
+    
+    if (error) throw error;
+    return data;
+  },
+
+  // Register for an event
+  async registerForEvent(eventId: string, userId: string) {
+    const { data, error } = await supabase
+      .from('event_registrations')
+      .insert({ event_id: eventId, user_id: userId })
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  },
+
+  // Check if user is registered for event
+  async isRegisteredForEvent(eventId: string, userId: string) {
+    const { data, error } = await supabase
+      .from('event_registrations')
+      .select('*')
+      .eq('event_id', eventId)
+      .eq('user_id', userId)
+      .maybeSingle();
+    
+    if (error) throw error;
+    return !!data;
+  },
+
+  // Get all announcements
+  async getAnnouncements() {
+    const { data, error } = await supabase
+      .from('announcements')
+      .select('*')
+      .order('created_at', { ascending: false });
+    
+    if (error) throw error;
+    return data;
+  },
+
+  // Get all resources
+  async getResources() {
+    const { data, error } = await supabase
+      .from('resources')
+      .select('*')
+      .order('created_at', { ascending: false });
+    
+    if (error) throw error;
+    return data;
+  },
+
+  // Get leaderboard (top users by points)
+  async getLeaderboard(limit = 10) {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .order('points', { ascending: false })
+      .limit(limit);
+    
+    if (error) throw error;
+    return data;
+  },
+
+  // Add points to user
+  async addPoints(userId: string, points: number, reason: string) {
+    // Add to points history
+    await supabase
+      .from('points_history')
+      .insert({ user_id: userId, points, reason });
+
+    // Update user total points
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('points')
+      .eq('id', userId)
+      .single();
+
+    if (profile) {
+      await supabase
+        .from('profiles')
+        .update({ points: (profile.points || 0) + points })
+        .eq('id', userId);
+    }
+  },
+};
