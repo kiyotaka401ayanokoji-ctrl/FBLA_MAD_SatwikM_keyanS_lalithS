@@ -1,16 +1,19 @@
 import React, { useState } from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity, Linking, ActivityIndicator } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { BlurView } from 'expo-blur';
+import Animated, { FadeInRight } from 'react-native-reanimated';
 import { useTheme } from '../contexts/ThemeContext';
 import { SPACING, TYPOGRAPHY, BORDER_RADIUS, SHADOWS } from '../constants/theme';
 
 interface InstagramPostCardProps {
   postUrl: string;
   username?: string;
+  index?: number;
 }
 
-export default function InstagramPostCard({ postUrl, username = '@fbla.nchs' }: InstagramPostCardProps) {
-  const { colors } = useTheme();
+export default function InstagramPostCard({ postUrl, username = '@fbla.nchs', index = 0 }: InstagramPostCardProps) {
+  const { colors, isDarkMode } = useTheme();
   const [imageLoading, setImageLoading] = useState(true);
   const [imageError, setImageError] = useState(false);
 
@@ -34,11 +37,21 @@ export default function InstagramPostCard({ postUrl, username = '@fbla.nchs' }: 
   };
 
   return (
-    <TouchableOpacity 
-      style={[styles.card, { backgroundColor: colors.surface }]}
-      onPress={handleOpenPost}
-      activeOpacity={0.9}
-    >
+    <Animated.View entering={FadeInRight.delay(index * 100).springify()}>
+      <TouchableOpacity
+        onPress={handleOpenPost}
+        activeOpacity={0.85}
+      >
+        <BlurView
+          intensity={isDarkMode ? 45 : 95}
+          tint={isDarkMode ? 'dark' : 'light'}
+          style={[styles.container, SHADOWS.medium]}
+        >
+          <View style={[styles.cardInner, {
+            borderColor: isDarkMode ? 'rgba(90, 159, 238, 0.4)' : 'rgba(255, 255, 255, 0.7)',
+            borderWidth: 1.5,
+            backgroundColor: isDarkMode ? 'transparent' : 'rgba(255, 255, 255, 0.9)'
+          }]}>
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.profileSection}>
@@ -104,17 +117,23 @@ export default function InstagramPostCard({ postUrl, username = '@fbla.nchs' }: 
           <Text style={styles.viewButtonText}>View Full Post</Text>
           <MaterialIcons name="arrow-forward" size={16} color="#FFFFFF" />
         </TouchableOpacity>
-      </View>
-    </TouchableOpacity>
+          </View>
+        </BlurView>
+      </TouchableOpacity>
+    </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
-  card: {
-    borderRadius: BORDER_RADIUS.xl,
-    marginBottom: SPACING.lg,
+  container: {
+    borderRadius: 18,
+    marginHorizontal: SPACING.lg,
+    marginBottom: SPACING.md,
     overflow: 'hidden',
-    ...SHADOWS.large,
+  },
+  cardInner: {
+    padding: SPACING.md,
+    borderRadius: 18,
   },
   header: {
     flexDirection: 'row',
