@@ -1,34 +1,48 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
-import InstagramFeed from '../components/InstagramFeed';
+import { ScrollView, StyleSheet, View, Text } from 'react-native';
+import { MaterialIcons } from '@expo/vector-icons';
+import InstagramPostCard from './InstagramPostCard';
 import { useTheme } from '../contexts/ThemeContext';
+import { SPACING, TYPOGRAPHY } from '../constants/theme';
 
-// 🔥 UPDATE THESE POST URLS WHENEVER YOU WANT TO SHOW NEW POSTS!
-const INSTAGRAM_POST_URLS = [
-  'https://www.instagram.com/fbla.nchs/p/DQ72gKLEl73/',
-  'https://www.instagram.com/fbla.nchs/p/DP1X0WJkXig/',
-  'https://www.instagram.com/fbla.nchs/p/DQiEQvRkvjA/',
-];
+interface InstagramFeedProps {
+  postUrls: string[];
+}
 
-export default function InstagramFeedScreen() {
-  const { colors, isDarkMode } = useTheme();
+export default function InstagramFeed({ postUrls }: InstagramFeedProps) {
+  const { colors } = useTheme();
+
+  // Extract username from the first post URL
+  const extractUsername = (url: string): string => {
+    const match = url.match(/instagram\.com\/([^\/]+)/);
+    return match ? `@${match[1]}` : '@fbla.nchs';
+  };
+
+  const username = postUrls.length > 0 ? extractUsername(postUrls[0]) : '@fbla.nchs';
 
   return (
-    <View style={styles.container}>
-      <LinearGradient
-        colors={isDarkMode 
-          ? [colors.backgroundGradient1, colors.backgroundGradient2, colors.backgroundGradient3, colors.backgroundGradient4]
-          : [colors.backgroundGradient1, colors.backgroundGradient2, colors.backgroundGradient3, colors.backgroundGradient4]
-        }
-        style={StyleSheet.absoluteFillObject}
-      />
-      
-      <SafeAreaView style={styles.safeArea} edges={['top']}>
-        <InstagramFeed postUrls={INSTAGRAM_POST_URLS} />
-      </SafeAreaView>
-    </View>
+    <ScrollView 
+      style={styles.container}
+      contentContainerStyle={styles.scrollContent}
+      showsVerticalScrollIndicator={false}
+    >
+      {/* Posts */}
+      {postUrls.map((url, index) => (
+        <InstagramPostCard
+          key={index}
+          postUrl={url}
+          username={username}
+          index={index}
+        />
+      ))}
+
+      {/* Footer */}
+      <View style={styles.footer}>
+        <Text style={[styles.footerText, { color: colors.textLight }]}>
+          Tap any post to view on Instagram
+        </Text>
+      </View>
+    </ScrollView>
   );
 }
 
@@ -36,7 +50,15 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  safeArea: {
-    flex: 1,
+  scrollContent: {
+    padding: SPACING.lg,
+    paddingBottom: SPACING.xxl,
+  },
+  footer: {
+    alignItems: 'center',
+    paddingVertical: SPACING.lg,
+  },
+  footerText: {
+    ...TYPOGRAPHY.caption,
   },
 });
