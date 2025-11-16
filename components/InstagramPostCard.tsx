@@ -12,6 +12,7 @@ interface InstagramPostCardProps {
   index?: number;
 }
 
+
 export default function InstagramPostCard({ postUrl, username = '@fbla.nchs', index = 0 }: InstagramPostCardProps) {
   const { colors, isDarkMode } = useTheme();
   const [imageLoading, setImageLoading] = useState(true);
@@ -63,7 +64,6 @@ export default function InstagramPostCard({ postUrl, username = '@fbla.nchs', in
             <Text style={[styles.platform, { color: colors.textLight }]}>Instagram</Text>
           </View>
         </View>
-        <MaterialIcons name="open-in-new" size={20} color={colors.textLight} />
       </View>
 
       {/* Post Image */}
@@ -94,7 +94,7 @@ export default function InstagramPostCard({ postUrl, username = '@fbla.nchs', in
               setImageError(true);
               setImageLoading(false);
             }}
-            resizeMode="cover"
+            resizeMode="contain" // <-- 'contain' is good, 'cover' might be better if you want it to fill completely
           />
         )}
       </View>
@@ -110,15 +110,16 @@ export default function InstagramPostCard({ postUrl, username = '@fbla.nchs', in
           <MaterialIcons name="bookmark-border" size={24} color={colors.text} />
         </View>
         
-        <TouchableOpacity 
+        <TouchableOpacity
           style={[styles.viewButton, { backgroundColor: colors.primary }]}
           onPress={handleOpenPost}
         >
           <Text style={styles.viewButtonText}>View Full Post</Text>
           <MaterialIcons name="arrow-forward" size={16} color="#FFFFFF" />
         </TouchableOpacity>
-          </View>
-        </BlurView>
+        </View>
+      </View>
+    </BlurView>
       </TouchableOpacity>
     </Animated.View>
   );
@@ -127,19 +128,17 @@ export default function InstagramPostCard({ postUrl, username = '@fbla.nchs', in
 const styles = StyleSheet.create({
   container: {
     borderRadius: 18,
-    marginHorizontal: SPACING.lg,
+    marginHorizontal: 0,
     marginBottom: SPACING.md,
     overflow: 'hidden',
   },
   cardInner: {
-    padding: SPACING.md,
+    // padding: SPACING.md, // <-- FIX 1: REMOVED padding from parent
     borderRadius: 18,
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: SPACING.md,
+    // alignItems: 'center', // <-- FIX 2: REMOVED this (from original advice)
+    padding: SPACING.md,     // <-- FIX 3: ADDED padding here
   },
   profileSection: {
     flexDirection: 'row',
@@ -162,12 +161,16 @@ const styles = StyleSheet.create({
   },
   imageContainer: {
     width: '100%',
-    aspectRatio: 1,
+    height: 300,
     backgroundColor: '#f0f0f0',
+    // marginHorizontal: -SPACING.md, // <-- FIX 4: REMOVED this hack
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   image: {
-    width: '100%',
-    height: '100%',
+    width: '100%',  // <-- FIX 5: CHANGED from 280
+    height: '100%', // <-- FIX 6: CHANGED from 280
+    // All absolute positioning properties removed
   },
   loadingContainer: {
     width: '100%',
@@ -190,7 +193,7 @@ const styles = StyleSheet.create({
     marginTop: SPACING.sm,
   },
   footer: {
-    padding: SPACING.md,
+    padding: SPACING.md, // <-- FIX 7: ADDED padding here
   },
   actionRow: {
     flexDirection: 'row',

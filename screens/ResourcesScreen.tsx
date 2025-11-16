@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { FloatingTTSButton } from '../components/FloatingTTSButton';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Linking, TextInput } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Linking, TextInput, Animated } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
-import Animated, { FadeInDown } from 'react-native-reanimated';
+import { FadeInDown } from 'react-native-reanimated';
 import { useTheme } from '../contexts/ThemeContext';
 import { SPACING, TYPOGRAPHY, BORDER_RADIUS, SHADOWS } from '../constants/theme';
 
@@ -135,9 +135,112 @@ const OFFICIAL_RESOURCES: Resource[] = [
   },
 ];
 
+
+
 export default function ResourcesScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const { colors, isDarkMode } = useTheme();
+
+  // Background animations
+  const circle1Anim = useRef(new Animated.Value(0)).current;
+  const circle2Anim = useRef(new Animated.Value(0)).current;
+  const circle3Anim = useRef(new Animated.Value(0)).current;
+  const circle4Anim = useRef(new Animated.Value(0)).current;
+  const circle5Anim = useRef(new Animated.Value(0)).current;
+  const circle6Anim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    // Animate floating circles
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(circle1Anim, {
+          toValue: 1,
+          duration: 14000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(circle1Anim, {
+          toValue: 0,
+          duration: 14000,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(circle2Anim, {
+          toValue: 1,
+          duration: 17000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(circle2Anim, {
+          toValue: 0,
+          duration: 17000,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(circle3Anim, {
+          toValue: 1,
+          duration: 19500,
+          useNativeDriver: true,
+        }),
+        Animated.timing(circle3Anim, {
+          toValue: 0,
+          duration: 19500,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(circle4Anim, {
+          toValue: 1,
+          duration: 21500,
+          useNativeDriver: true,
+        }),
+        Animated.timing(circle4Anim, {
+          toValue: 0,
+          duration: 21500,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(circle5Anim, {
+          toValue: 1,
+          duration: 16500,
+          useNativeDriver: true,
+        }),
+        Animated.timing(circle5Anim, {
+          toValue: 0,
+          duration: 16500,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(circle6Anim, {
+          toValue: 1,
+          duration: 18500,
+          useNativeDriver: true,
+        }),
+        Animated.timing(circle6Anim, {
+          toValue: 0,
+          duration: 18500,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  }, [circle1Anim, circle2Anim, circle3Anim, circle4Anim, circle5Anim, circle6Anim]);
 
   const handleOpenResource = (url: string) => {
     Linking.openURL(url).catch(err => console.error('Error opening URL:', err));
@@ -153,9 +256,190 @@ export default function ResourcesScreen() {
   const filteredRubrics = filterResources(EVENT_RUBRICS);
   const filteredOfficial = filterResources(OFFICIAL_RESOURCES);
 
+  const circle1TranslateY = circle1Anim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [-60, 90],
+  });
+
+  const circle1TranslateX = circle1Anim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [5, 45],
+  });
+
+  const circle2TranslateY = circle2Anim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [90, -50],
+  });
+
+  const circle2TranslateX = circle2Anim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [15, -35],
+  });
+
+  const circle3TranslateY = circle3Anim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [-40, 70],
+  });
+
+  const circle3TranslateX = circle3Anim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [25, -25],
+  });
+
+  const circle4TranslateY = circle4Anim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [55, -35],
+  });
+
+  const circle4TranslateX = circle4Anim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [-15, 30],
+  });
+
+  const circle5TranslateY = circle5Anim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [-45, 65],
+  });
+
+  const circle5TranslateX = circle5Anim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [35, -20],
+  });
+
+  const circle6TranslateY = circle6Anim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [45, -25],
+  });
+
+  const circle6TranslateX = circle6Anim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [-25, 35],
+  });
+
   return (
-    <View style={[styles.container, { backgroundColor: isDarkMode ? '#0F1419' : '#D4E3F7' }]}>
-      <SafeAreaView style={styles.safeArea} edges={['top']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: isDarkMode ? '#0F1419' : '#D4E3F7' }]} edges={['top']}>
+      {/* Floating Background Circles - PASTEL with Dark Mode support */}
+      <Animated.View
+        style={[
+          styles.floatingCircle,
+          styles.circle1,
+          {
+            backgroundColor: isDarkMode ? 'rgba(139, 92, 246, 0.18)' : 'rgba(221, 214, 254, 0.45)',
+            transform: [
+              { translateY: circle1TranslateY },
+              { translateX: circle1TranslateX },
+            ],
+          },
+        ]}
+      />
+      <Animated.View
+        style={[
+          styles.floatingCircle,
+          styles.circle2,
+          {
+            backgroundColor: isDarkMode ? 'rgba(59, 130, 246, 0.18)' : 'rgba(219, 234, 254, 0.45)',
+            transform: [
+              { translateY: circle2TranslateY },
+              { translateX: circle2TranslateX },
+            ],
+          },
+        ]}
+      />
+      <Animated.View
+        style={[
+          styles.floatingCircle,
+          styles.circle3,
+          {
+            backgroundColor: isDarkMode ? 'rgba(34, 197, 94, 0.18)' : 'rgba(220, 252, 231, 0.45)',
+            transform: [
+              { translateY: circle3TranslateY },
+              { translateX: circle3TranslateX },
+            ],
+          },
+        ]}
+      />
+      <Animated.View
+        style={[
+          styles.floatingCircle,
+          styles.circle4,
+          {
+            backgroundColor: isDarkMode ? 'rgba(236, 72, 153, 0.18)' : 'rgba(252, 231, 243, 0.5)',
+            transform: [
+              { translateY: circle4TranslateY },
+              { translateX: circle4TranslateX },
+            ],
+          },
+        ]}
+      />
+      <Animated.View
+        style={[
+          styles.floatingCircle,
+          styles.circle5,
+          {
+            backgroundColor: isDarkMode ? 'rgba(251, 146, 60, 0.18)' : 'rgba(254, 243, 199, 0.45)',
+            transform: [
+              { translateY: circle5TranslateY },
+              { translateX: circle5TranslateX },
+            ],
+          },
+        ]}
+      />
+      <Animated.View
+        style={[
+          styles.floatingCircle,
+          styles.circle6,
+          {
+            backgroundColor: isDarkMode ? 'rgba(244, 63, 94, 0.18)' : 'rgba(254, 226, 226, 0.45)',
+            transform: [
+              { translateY: circle6TranslateY },
+              { translateX: circle6TranslateX },
+            ],
+          },
+        ]}
+      />
+
+      {/* Small circles */}
+      <Animated.View
+        style={[
+          styles.floatingCircle,
+          styles.circleSmall1,
+          {
+            backgroundColor: isDarkMode ? 'rgba(16, 185, 129, 0.14)' : 'rgba(209, 250, 229, 0.55)',
+            transform: [
+              { translateY: circle1TranslateY.interpolate({ inputRange: [0, 90], outputRange: [0, -55] }) },
+              { translateX: circle1TranslateX },
+            ],
+          },
+        ]}
+      />
+      <Animated.View
+        style={[
+          styles.floatingCircle,
+          styles.circleSmall2,
+          {
+            backgroundColor: isDarkMode ? 'rgba(168, 85, 247, 0.14)' : 'rgba(250, 232, 255, 0.55)',
+            transform: [
+              { translateY: circle2TranslateY.interpolate({ inputRange: [-50, 90], outputRange: [90, -50] }) },
+              { translateX: circle2TranslateX },
+            ],
+          },
+        ]}
+      />
+      <Animated.View
+        style={[
+          styles.floatingCircle,
+          styles.circleSmall3,
+          {
+            backgroundColor: isDarkMode ? 'rgba(14, 165, 233, 0.14)' : 'rgba(224, 242, 254, 0.55)',
+            transform: [
+              { translateY: circle3TranslateY },
+              { translateX: circle3TranslateX.interpolate({ inputRange: [-25, 25], outputRange: [35, -15] }) },
+            ],
+          },
+        ]}
+      />
+
+      <View style={styles.safeArea}>
         {/* Header */}
         <View style={styles.header}>
           <Text style={[styles.headerTitle, { color: colors.text }]}>Resources</Text>
@@ -260,14 +544,14 @@ export default function ResourcesScreen() {
           )}
         </ScrollView>
        {/* Floating TTS Button */}
-        <FloatingTTSButton 
-          content={`Resources Screen. 
-            ${filteredRubrics.length} event rubrics and guides available. 
+        <FloatingTTSButton
+          content={`Resources Screen.
+            ${filteredRubrics.length} event rubrics and guides available.
             ${filteredOfficial.length} official FBLA resources available.
             ${searchQuery ? `Currently searching for: ${searchQuery}` : ''}`}
         />
-      </SafeAreaView>
-    </View>
+      </View>
+    </SafeAreaView>
   );
 }
 
@@ -333,6 +617,8 @@ function ResourceItem({ resource, onPress, index, colors, isDarkMode, isOfficial
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    position: 'relative',
+    overflow: 'hidden',
   },
   safeArea: {
     flex: 1,
@@ -435,5 +721,66 @@ const styles = StyleSheet.create({
     ...TYPOGRAPHY.body,
     marginTop: SPACING.md,
     textAlign: 'center',
+  },
+  // Floating circles - PASTEL COLORS
+  floatingCircle: {
+    position: 'absolute',
+    borderRadius: 9999,
+    zIndex: 0,
+  },
+  circle1: {
+    width: 200,
+    height: 200,
+    top: 80,
+    right: -70,
+  },
+  circle2: {
+    width: 180,
+    height: 180,
+    top: 280,
+    left: -60,
+  },
+  circle3: {
+    width: 160,
+    height: 160,
+    top: 480,
+    right: -50,
+  },
+  circle4: {
+    width: 190,
+    height: 190,
+    top: 630,
+    left: -65,
+  },
+  circle5: {
+    width: 170,
+    height: 170,
+    top: 120,
+    left: 20,
+  },
+  circle6: {
+    width: 185,
+    height: 185,
+    top: 360,
+    right: 10,
+  },
+  // Small circles
+  circleSmall1: {
+    width: 90,
+    height: 90,
+    top: 200,
+    right: 20,
+  },
+  circleSmall2: {
+    width: 80,
+    height: 80,
+    top: 400,
+    left: 40,
+  },
+  circleSmall3: {
+    width: 100,
+    height: 100,
+    top: 540,
+    left: 10,
   },
 });

@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert, Image } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert, Image, Animated } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
-import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
+import { FadeIn, FadeInDown } from 'react-native-reanimated';
 import * as ImagePicker from 'expo-image-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSupabaseAuth } from '../contexts/SupabaseAuthContext';
@@ -29,9 +29,108 @@ export default function ProfileScreen() {
     memberSince: '',
   });
 
+  // Background animations
+  const circle1Anim = useRef(new Animated.Value(0)).current;
+  const circle2Anim = useRef(new Animated.Value(0)).current;
+  const circle3Anim = useRef(new Animated.Value(0)).current;
+  const circle4Anim = useRef(new Animated.Value(0)).current;
+  const circle5Anim = useRef(new Animated.Value(0)).current;
+  const circle6Anim = useRef(new Animated.Value(0)).current;
+
   useEffect(() => {
     loadTTSPreference();
-  }, []);
+
+    // Animate floating circles
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(circle1Anim, {
+          toValue: 1,
+          duration: 13000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(circle1Anim, {
+          toValue: 0,
+          duration: 13000,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(circle2Anim, {
+          toValue: 1,
+          duration: 16000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(circle2Anim, {
+          toValue: 0,
+          duration: 16000,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(circle3Anim, {
+          toValue: 1,
+          duration: 19000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(circle3Anim, {
+          toValue: 0,
+          duration: 19000,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(circle4Anim, {
+          toValue: 1,
+          duration: 21000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(circle4Anim, {
+          toValue: 0,
+          duration: 21000,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(circle5Anim, {
+          toValue: 1,
+          duration: 16000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(circle5Anim, {
+          toValue: 0,
+          duration: 16000,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(circle6Anim, {
+          toValue: 1,
+          duration: 18000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(circle6Anim, {
+          toValue: 0,
+          duration: 18000,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  }, [circle1Anim, circle2Anim, circle3Anim, circle4Anim, circle5Anim, circle6Anim]);
 
   const loadTTSPreference = async () => {
     try {
@@ -174,6 +273,66 @@ export default function ProfileScreen() {
     );
   }
 
+  const circle1TranslateY = circle1Anim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [-50, 100],
+  });
+
+  const circle1TranslateX = circle1Anim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [15, 55],
+  });
+
+  const circle2TranslateY = circle2Anim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [70, -30],
+  });
+
+  const circle2TranslateX = circle2Anim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [25, -45],
+  });
+
+  const circle3TranslateY = circle3Anim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [-35, 85],
+  });
+
+  const circle3TranslateX = circle3Anim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [-5, 35],
+  });
+
+  const circle4TranslateY = circle4Anim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [65, -45],
+  });
+
+  const circle4TranslateX = circle4Anim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [-25, 40],
+  });
+
+  const circle5TranslateY = circle5Anim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [-55, 75],
+  });
+
+  const circle5TranslateX = circle5Anim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [40, -30],
+  });
+
+  const circle6TranslateY = circle6Anim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [50, -20],
+  });
+
+  const circle6TranslateX = circle6Anim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [-35, 45],
+  });
+
   const ttsContent = `
     Profile Screen.
     Name: ${profile.name || 'Not set'}.
@@ -188,19 +347,141 @@ export default function ProfileScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: isDarkMode ? '#0F1419' : '#D4E3F7' }]} edges={['top']}>
-      <View style={styles.header}>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>Profile</Text>
-        <TouchableOpacity 
-          style={[styles.editButton, { backgroundColor: colors.primary }]}
-          onPress={() => isEditing ? handleSave() : setIsEditing(true)}
-        >
-          <MaterialIcons 
-            name={isEditing ? 'check' : 'edit'} 
-            size={24} 
-            color="#FFFFFF" 
-          />
-        </TouchableOpacity>
-      </View>
+      {/* Floating Background Circles - PASTEL with Dark Mode support */}
+      <Animated.View
+        style={[
+          styles.floatingCircle,
+          styles.circle1,
+          {
+            backgroundColor: isDarkMode ? 'rgba(139, 92, 246, 0.16)' : 'rgba(221, 214, 254, 0.4)',
+            transform: [
+              { translateY: circle1TranslateY },
+              { translateX: circle1TranslateX },
+            ],
+          },
+        ]}
+      />
+      <Animated.View
+        style={[
+          styles.floatingCircle,
+          styles.circle2,
+          {
+            backgroundColor: isDarkMode ? 'rgba(59, 130, 246, 0.16)' : 'rgba(219, 234, 254, 0.4)',
+            transform: [
+              { translateY: circle2TranslateY },
+              { translateX: circle2TranslateX },
+            ],
+          },
+        ]}
+      />
+      <Animated.View
+        style={[
+          styles.floatingCircle,
+          styles.circle3,
+          {
+            backgroundColor: isDarkMode ? 'rgba(34, 197, 94, 0.16)' : 'rgba(220, 252, 231, 0.4)',
+            transform: [
+              { translateY: circle3TranslateY },
+              { translateX: circle3TranslateX },
+            ],
+          },
+        ]}
+      />
+      <Animated.View
+        style={[
+          styles.floatingCircle,
+          styles.circle4,
+          {
+            backgroundColor: isDarkMode ? 'rgba(236, 72, 153, 0.16)' : 'rgba(252, 231, 243, 0.45)',
+            transform: [
+              { translateY: circle4TranslateY },
+              { translateX: circle4TranslateX },
+            ],
+          },
+        ]}
+      />
+      <Animated.View
+        style={[
+          styles.floatingCircle,
+          styles.circle5,
+          {
+            backgroundColor: isDarkMode ? 'rgba(251, 146, 60, 0.16)' : 'rgba(254, 243, 199, 0.4)',
+            transform: [
+              { translateY: circle5TranslateY },
+              { translateX: circle5TranslateX },
+            ],
+          },
+        ]}
+      />
+      <Animated.View
+        style={[
+          styles.floatingCircle,
+          styles.circle6,
+          {
+            backgroundColor: isDarkMode ? 'rgba(244, 63, 94, 0.16)' : 'rgba(254, 226, 226, 0.4)',
+            transform: [
+              { translateY: circle6TranslateY },
+              { translateX: circle6TranslateX },
+            ],
+          },
+        ]}
+      />
+
+      {/* Small circles */}
+      <Animated.View
+        style={[
+          styles.floatingCircle,
+          styles.circleSmall1,
+          {
+            backgroundColor: isDarkMode ? 'rgba(16, 185, 129, 0.12)' : 'rgba(209, 250, 229, 0.5)',
+            transform: [
+              { translateY: circle1TranslateY.interpolate({ inputRange: [0, 100], outputRange: [0, -65] }) },
+              { translateX: circle1TranslateX },
+            ],
+          },
+        ]}
+      />
+      <Animated.View
+        style={[
+          styles.floatingCircle,
+          styles.circleSmall2,
+          {
+            backgroundColor: isDarkMode ? 'rgba(168, 85, 247, 0.12)' : 'rgba(250, 232, 255, 0.5)',
+            transform: [
+              { translateY: circle2TranslateY.interpolate({ inputRange: [-30, 70], outputRange: [70, -30] }) },
+              { translateX: circle2TranslateX },
+            ],
+          },
+        ]}
+      />
+      <Animated.View
+        style={[
+          styles.floatingCircle,
+          styles.circleSmall3,
+          {
+            backgroundColor: isDarkMode ? 'rgba(14, 165, 233, 0.12)' : 'rgba(224, 242, 254, 0.5)',
+            transform: [
+              { translateY: circle3TranslateY },
+              { translateX: circle3TranslateX.interpolate({ inputRange: [-35, 35], outputRange: [40, -20] }) },
+            ],
+          },
+        ]}
+      />
+
+      <View style={styles.safeArea}>
+        <View style={styles.header}>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>Profile</Text>
+          <TouchableOpacity
+            style={[styles.editButton, { backgroundColor: colors.primary }]}
+            onPress={() => isEditing ? handleSave() : setIsEditing(true)}
+          >
+            <MaterialIcons
+              name={isEditing ? 'check' : 'edit'}
+              size={24}
+              color="#FFFFFF"
+            />
+          </TouchableOpacity>
+        </View>
 
       <ScrollView 
         showsVerticalScrollIndicator={false}
@@ -359,13 +640,19 @@ export default function ProfileScreen() {
         </Animated.View>
       </ScrollView>
 
-      <FloatingTTSButton content={ttsContent} />
+        <FloatingTTSButton content={ttsContent} />
+      </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  safeArea: {
     flex: 1,
   },
   header: {
@@ -547,5 +834,66 @@ const styles = StyleSheet.create({
   },
   logoutText: {
     fontWeight: '600',
+  },
+  // Floating circles - PASTEL COLORS
+  floatingCircle: {
+    position: 'absolute',
+    borderRadius: 9999,
+    zIndex: 0,
+  },
+  circle1: {
+    width: 220,
+    height: 220,
+    top: 60,
+    right: -80,
+  },
+  circle2: {
+    width: 190,
+    height: 190,
+    top: 260,
+    left: -70,
+  },
+  circle3: {
+    width: 170,
+    height: 170,
+    top: 460,
+    right: -60,
+  },
+  circle4: {
+    width: 200,
+    height: 200,
+    top: 610,
+    left: -75,
+  },
+  circle5: {
+    width: 180,
+    height: 180,
+    top: 100,
+    left: 10,
+  },
+  circle6: {
+    width: 195,
+    height: 195,
+    top: 340,
+    right: 0,
+  },
+  // Small circles
+  circleSmall1: {
+    width: 100,
+    height: 100,
+    top: 180,
+    right: 10,
+  },
+  circleSmall2: {
+    width: 90,
+    height: 90,
+    top: 380,
+    left: 30,
+  },
+  circleSmall3: {
+    width: 110,
+    height: 110,
+    top: 520,
+    left: 0,
   },
 });

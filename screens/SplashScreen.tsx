@@ -1,7 +1,12 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Animated, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, Animated, Dimensions, Image } from 'react-native'; // Import Image
 import { LinearGradient } from 'expo-linear-gradient';
-import { MaterialIcons } from '@expo/vector-icons';
+// Removed MaterialIcons as it's no longer needed for the logo
+// import { MaterialIcons } from '@expo/vector-icons'; 
+
+// Import your custom logo image
+import CustomLogo from '../assets/images/logo-removebg-preview.png';
+// Use the exact filename you confirmed here.
 
 const { width, height } = Dimensions.get('window');
 
@@ -80,7 +85,8 @@ export default function SplashScreen({ onFinish }: SplashScreenProps) {
         ]}
       >
         <Animated.View style={{ transform: [{ rotate: spin }] }}>
-          <MaterialIcons name="business-center" size={100} color="#FFFFFF" />
+          {/* Replaced MaterialIcons with your custom Image */}
+          <Image source={CustomLogo} style={styles.logo} resizeMode="contain" />
         </Animated.View>
 
         <Animated.View
@@ -123,6 +129,12 @@ const styles = StyleSheet.create({
   content: {
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  logo: {
+    width: 150, // Adjust width as needed
+    height: 150, // Adjust height as needed
+    // You might need to adjust these dimensions to make it look good
+    // based on the actual size and aspect ratio of your logo.
   },
   textContainer: {
     alignItems: 'center',
