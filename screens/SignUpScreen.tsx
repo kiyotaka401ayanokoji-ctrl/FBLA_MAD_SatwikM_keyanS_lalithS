@@ -22,7 +22,9 @@ export default function SignUpScreen({ navigation }: SignUpScreenProps) {
     position: '',
     phone: '',
     bio: '',
+    role: 'Student',
   });
+  const [execPasscode, setExecPasscode] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<any>({});
@@ -104,7 +106,12 @@ export default function SignUpScreen({ navigation }: SignUpScreenProps) {
 
     setIsLoading(true);
     try {
-      await signUp(formData);
+      const result = await signUp({ ...formData, execPasscode });
+      if (result.role === 'Executive') {
+        navigation.navigate('ExecutiveHome');
+      } else {
+        navigation.navigate('Main');
+      }
     } catch (error: any) {
       Alert.alert('Sign Up Failed', error.message || 'An error occurred');
     } finally {
@@ -229,6 +236,40 @@ export default function SignUpScreen({ navigation }: SignUpScreenProps) {
               multiline
               colors={colors}
             />
+
+            <View style={styles.inputContainer}>
+              <Text style={[styles.label, { color: colors.text }]}>Role</Text>
+              <View style={[styles.roleSelector, { borderColor: colors.border }]}>
+                <TouchableOpacity
+                  style={[styles.roleButton, { backgroundColor: colors.surface }, formData.role === 'Student' && { backgroundColor: colors.primary }]}
+                  onPress={() => updateField('role', 'Student')}
+                >
+                  <Text style={[styles.roleButtonText, { color: colors.textSecondary }, formData.role === 'Student' && { color: '#FFFFFF' }]}>
+                    Student
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.roleButton, { backgroundColor: colors.surface }, formData.role === 'Executive' && { backgroundColor: colors.primary }]}
+                  onPress={() => updateField('role', 'Executive')}
+                >
+                  <Text style={[styles.roleButtonText, { color: colors.textSecondary }, formData.role === 'Executive' && { color: '#FFFFFF' }]}>
+                    Executive Member
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            {formData.role === 'Executive' && (
+              <InputField
+                label="Executive Access Code"
+                icon="lock"
+                placeholder="Enter access code"
+                value={execPasscode}
+                onChangeText={setExecPasscode}
+                secureTextEntry
+                colors={colors}
+              />
+            )}
 
             <TouchableOpacity
               style={[styles.signUpButton, { backgroundColor: colors.primary }]}
@@ -397,5 +438,24 @@ const styles = StyleSheet.create({
   },
   signInLinkText: {
     ...TYPOGRAPHY.body,
+  },
+  roleSelector: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    borderWidth: 1,
+    borderRadius: BORDER_RADIUS.lg,
+    overflow: 'hidden',
+    marginTop: SPACING.xs,
+  },
+  roleButton: {
+    flex: 1,
+    paddingVertical: SPACING.xs,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  roleButtonText: {
+    ...TYPOGRAPHY.caption,
+    fontWeight: '500',
+    textAlign: 'center',
   },
 });

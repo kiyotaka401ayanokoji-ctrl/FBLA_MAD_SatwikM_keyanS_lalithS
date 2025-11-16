@@ -1,16 +1,13 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { FloatingTTSButton } from '../components/FloatingTTSButton';
-import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, Animated, Platform, UIManager } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Animated, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
 import { SPACING, TYPOGRAPHY, BORDER_RADIUS } from '../constants/theme';
 import { getAllMembers, searchMembersByName, Member, Event } from '../utils/membersDatabase';
 
-// Enable LayoutAnimation on Android
-if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
-  UIManager.setLayoutAnimationEnabledExperimental(true);
-}
+
 
 interface MemberWithEvents extends Member {
   events: Event[];
@@ -24,6 +21,7 @@ export default function MembersHubScreen({ navigation }: any) {
   const [isLoading, setIsLoading] = useState(true);
   const [expandedMemberId, setExpandedMemberId] = useState<string | null>(null);
   const [isSearching, setIsSearching] = useState(false);
+  const scrollY = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     loadMembers();
@@ -74,26 +72,18 @@ const handleSearch = async (query: string) => {
     setExpandedMemberId(prev => prev === memberId ? null : memberId);
   }, []);
 
-  const renderMemberCard = useCallback(({ item }: { item: MemberWithEvents }) => (
-    <MemberCard
-      member={item}
-      colors={colors}
-      isDarkMode={isDarkMode}
-      isExpanded={expandedMemberId === item.id}
-      onToggle={() => toggleMemberExpansion(item.id)}
-    />
-  ), [colors, isDarkMode, expandedMemberId, toggleMemberExpansion]);
 
-  const keyExtractor = useCallback((item: MemberWithEvents) => item.id, []);
+
+
 
   if (isLoading) {
     return (
       <View style={[styles.container, { backgroundColor: isDarkMode ? '#0A0E13' : '#F5F7FA' }]}>
         <SafeAreaView style={styles.loadingContainer}>
           <View style={styles.bouncyDotsContainer}>
-            <BouncyDot delay={0} color={isDarkMode ? '#D4AF37' : '#B8941E'} />
-            <BouncyDot delay={150} color={isDarkMode ? '#D4AF37' : '#B8941E'} />
-            <BouncyDot delay={300} color={isDarkMode ? '#D4AF37' : '#B8941E'} />
+            <BouncyDot delay={0} color={isDarkMode ? '#5A9FEE' : '#00A3E0'} />
+            <BouncyDot delay={150} color={isDarkMode ? '#5A9FEE' : '#00A3E0'} />
+            <BouncyDot delay={300} color={isDarkMode ? '#5A9FEE' : '#00A3E0'} />
           </View>
           <Text style={[styles.loadingText, { color: colors.textSecondary }]}>Loading members...</Text>
         </SafeAreaView>
@@ -102,94 +92,111 @@ const handleSearch = async (query: string) => {
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: isDarkMode ? '#0A0E13' : '#F5F7FA' }]}>
+    <View style={[styles.container, { backgroundColor: isDarkMode ? '#0F1419' : '#D4E3F7' }]}>
       <SafeAreaView style={styles.safeArea} edges={['top']}>
-        {/* Clean Header */}
-        <View style={[styles.header, { 
-          backgroundColor: isDarkMode ? '#0A0E13' : '#FFFFFF',
+        {/* Enhanced Header with Gradient */}
+        <View style={[styles.header, {
+          backgroundColor: isDarkMode ? '#0F1419' : '#D4E3F7',
           borderBottomWidth: 1,
-          borderBottomColor: isDarkMode ? 'rgba(212, 175, 55, 0.1)' : 'rgba(212, 175, 55, 0.15)'
+          borderBottomColor: isDarkMode ? 'rgba(90, 159, 238, 0.2)' : 'rgba(0, 163, 224, 0.15)'
         }]}>
           <View style={styles.headerTop}>
-            <TouchableOpacity 
-              onPress={() => navigation.goBack()} 
-              style={[styles.backButton, { 
-                backgroundColor: isDarkMode ? 'rgba(212, 175, 55, 0.08)' : 'rgba(212, 175, 55, 0.1)',
-                borderWidth: 1,
-                borderColor: isDarkMode ? 'rgba(212, 175, 55, 0.2)' : 'rgba(212, 175, 55, 0.25)'
+            <TouchableOpacity
+              onPress={() => navigation.goBack()}
+              style={[styles.backButton, {
+                backgroundColor: 'transparent',
+                borderWidth: 0
               }]}
               activeOpacity={0.7}
             >
-              <MaterialIcons name="arrow-back" size={22} color={isDarkMode ? '#D4AF37' : '#B8941E'} />
+              <MaterialIcons name="arrow-back" size={22} color={colors.text} />
             </TouchableOpacity>
-            
+
             <View style={styles.headerContent}>
               <Text style={[styles.headerTitle, { color: colors.text }]}>Members Hub</Text>
+              <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
+                Connect with fellow members
+              </Text>
             </View>
           </View>
         </View>
 
-        {/* Clean Search Bar */}
+        {/* Enhanced Search Bar */}
         <View style={styles.searchContainer}>
           <View style={[
-            styles.searchBar, 
-            { 
-              backgroundColor: isDarkMode ? '#14181F' : '#F8F9FA',
+            styles.searchBar,
+            {
+              backgroundColor: isDarkMode ? '#1A1F2E' : '#FFFFFF',
               borderWidth: 1,
-              borderColor: isDarkMode ? 'rgba(212, 175, 55, 0.15)' : 'rgba(212, 175, 55, 0.2)',
+              borderColor: isDarkMode ? 'rgba(90, 159, 238, 0.2)' : 'rgba(0, 163, 224, 0.15)',
+              shadowColor: isDarkMode ? '#000000' : '#003DA5',
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: isDarkMode ? 0.3 : 0.08,
+              shadowRadius: 8,
+              elevation: 4,
             }
           ]}>
-            <MaterialIcons name="search" size={20} color={isDarkMode ? 'rgba(212, 175, 55, 0.6)' : 'rgba(184, 148, 30, 0.6)'} />
+            <MaterialIcons name="search" size={20} color={isDarkMode ? 'rgba(90, 159, 238, 0.6)' : 'rgba(0, 163, 224, 0.6)'} />
             <TextInput
               style={[styles.searchInput, { color: colors.text }]}
-              placeholder="Search members..."
-              placeholderTextColor={isDarkMode ? 'rgba(255, 255, 255, 0.35)' : 'rgba(0, 0, 0, 0.35)'}
+              placeholder="Search members or events..."
+              placeholderTextColor={isDarkMode ? 'rgba(255, 255, 255, 0.4)' : 'rgba(0, 0, 0, 0.4)'}
               value={searchQuery}
               onChangeText={handleSearch}
               autoCapitalize="none"
               autoCorrect={false}
             />
             {searchQuery.length > 0 && (
-              <TouchableOpacity 
-                onPress={() => handleSearch('')} 
+              <TouchableOpacity
+                onPress={() => handleSearch('')}
                 activeOpacity={0.7}
                 style={styles.clearButton}
               >
-                <MaterialIcons name="close" size={18} color={isDarkMode ? 'rgba(255, 255, 255, 0.4)' : 'rgba(0, 0, 0, 0.4)'} />
+                <MaterialIcons name="close" size={18} color={isDarkMode ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.5)'} />
               </TouchableOpacity>
             )}
           </View>
         </View>
 
-        {/* Members List */}
-        <FlatList
-          data={filteredMembers}
-          renderItem={renderMemberCard}
-          keyExtractor={keyExtractor}
-          contentContainerStyle={styles.listContent}
+        {/* Animated ScrollView */}
+        <Animated.ScrollView
+          style={styles.scrollView}
           showsVerticalScrollIndicator={false}
-          removeClippedSubviews={true}
-          maxToRenderPerBatch={10}
-          updateCellsBatchingPeriod={50}
-          initialNumToRender={15}
-          windowSize={10}
-          ListEmptyComponent={
-            searchQuery.length > 0 ? (
-              <View style={styles.noResults}>
-                <View style={[styles.noResultsIcon, { 
-                  backgroundColor: isDarkMode ? 'rgba(212, 175, 55, 0.08)' : 'rgba(212, 175, 55, 0.1)',
-                  borderWidth: 1,
-                  borderColor: isDarkMode ? 'rgba(212, 175, 55, 0.15)' : 'rgba(212, 175, 55, 0.2)'
-                }]}>
-                  <MaterialIcons name="search-off" size={40} color={isDarkMode ? 'rgba(212, 175, 55, 0.4)' : 'rgba(184, 148, 30, 0.4)'} />
-                </View>
-                <Text style={[styles.noResultsText, { color: colors.textSecondary }]}>
-                  No results for &quot;{searchQuery}&quot;
-                </Text>
+          contentContainerStyle={styles.scrollContent}
+          onScroll={Animated.event(
+            [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+            { useNativeDriver: true }
+          )}
+          scrollEventThrottle={16}
+        >
+          {filteredMembers.length > 0 ? (
+            filteredMembers.map((member, index) => (
+              <MemberCard
+                key={member.id}
+                member={member}
+                colors={colors}
+                isDarkMode={isDarkMode}
+                isExpanded={expandedMemberId === member.id}
+                onToggle={() => toggleMemberExpansion(member.id)}
+                scrollY={scrollY}
+                index={index}
+              />
+            ))
+          ) : searchQuery.length > 0 ? (
+            <View style={styles.noResults}>
+              <View style={[styles.noResultsIcon, {
+                backgroundColor: isDarkMode ? 'rgba(90, 159, 238, 0.1)' : 'rgba(0, 163, 224, 0.08)',
+                borderWidth: 1,
+                borderColor: isDarkMode ? 'rgba(90, 159, 238, 0.2)' : 'rgba(0, 163, 224, 0.15)'
+              }]}>
+                <MaterialIcons name="search-off" size={40} color={isDarkMode ? 'rgba(90, 159, 238, 0.5)' : 'rgba(0, 163, 224, 0.5)'} />
               </View>
-            ) : null
-          }
-        />
+              <Text style={[styles.noResultsText, { color: colors.textSecondary }]}>
+                No results for "{searchQuery}"
+              </Text>
+            </View>
+          ) : null}
+        </Animated.ScrollView>
       </SafeAreaView>
     </View>
   );
@@ -203,11 +210,27 @@ interface MemberCardProps {
   onToggle: () => void;
 }
 
-const MemberCard = React.memo(({ member, colors, isDarkMode, isExpanded, onToggle }: MemberCardProps) => {
+const MemberCard = React.memo(({ member, colors, isDarkMode, isExpanded, onToggle, scrollY, index }: MemberCardProps & { scrollY: Animated.Value; index: number }) => {
   const FIXED_EXPANDED_HEIGHT = 220;
   const [localExpanded, setLocalExpanded] = useState(isExpanded);
   const heightAnim = useRef(new Animated.Value(isExpanded ? FIXED_EXPANDED_HEIGHT : 0)).current;
   const opacityAnim = useRef(new Animated.Value(isExpanded ? 1 : 0)).current;
+
+  // Scroll-based scaling animation
+  const CARD_HEIGHT = 120; // Approximate card height
+  const cardPosition = index * CARD_HEIGHT;
+  const screenCenter = 200; // Approximate center position
+
+  const scale = scrollY.interpolate({
+    inputRange: [
+      cardPosition - screenCenter - CARD_HEIGHT,
+      cardPosition - screenCenter,
+      cardPosition - screenCenter + CARD_HEIGHT,
+      cardPosition - screenCenter + CARD_HEIGHT * 2,
+    ],
+    outputRange: [0.9, 1.1, 1.1, 0.9],
+    extrapolate: 'clamp',
+  });
 
   useEffect(() => {
     if (isExpanded !== localExpanded) {
@@ -228,25 +251,34 @@ const MemberCard = React.memo(({ member, colors, isDarkMode, isExpanded, onToggl
   }, [isExpanded, localExpanded, heightAnim, opacityAnim]);
 
   return (
-    <View style={styles.memberCardContainer}>
-      <TouchableOpacity 
-        onPress={onToggle}
-        activeOpacity={0.7}
+    <Animated.View style={styles.memberCardContainer}>
+      <Animated.View
         style={[
           styles.memberCard,
-          { 
-            backgroundColor: isDarkMode ? '#14181F' : '#FFFFFF',
+          {
+            backgroundColor: isDarkMode ? '#1A1F2E' : '#FFFFFF',
             borderWidth: 1,
-            borderColor: isDarkMode ? 'rgba(212, 175, 55, 0.1)' : 'rgba(212, 175, 55, 0.15)',
+            borderColor: isDarkMode ? 'rgba(90, 159, 238, 0.2)' : 'rgba(0, 163, 224, 0.15)',
+            shadowColor: isDarkMode ? '#000000' : '#003DA5',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: isDarkMode ? 0.3 : 0.08,
+            shadowRadius: 8,
+            elevation: 4,
+            transform: [{ scale }],
           }
         ]}
       >
+        <TouchableOpacity
+          onPress={onToggle}
+          activeOpacity={0.7}
+          style={styles.memberCardTouchable}
+        >
         <View style={[styles.avatar, {
-          backgroundColor: isDarkMode ? 'rgba(212, 175, 55, 0.1)' : 'rgba(212, 175, 55, 0.12)',
+          backgroundColor: isDarkMode ? 'rgba(90, 159, 238, 0.15)' : 'rgba(0, 163, 224, 0.12)',
           borderWidth: 1.5,
-          borderColor: isDarkMode ? 'rgba(212, 175, 55, 0.25)' : 'rgba(212, 175, 55, 0.3)',
+          borderColor: isDarkMode ? 'rgba(90, 159, 238, 0.4)' : 'rgba(0, 163, 224, 0.3)',
         }]}>
-          <Text style={[styles.avatarText, { color: isDarkMode ? '#D4AF37' : '#B8941E' }]}>{member.initials}</Text>
+          <Text style={[styles.avatarText, { color: isDarkMode ? '#5A9FEE' : '#00A3E0' }]}>{member.initials}</Text>
         </View>
 
         <View style={styles.memberInfo}>
@@ -257,48 +289,49 @@ const MemberCard = React.memo(({ member, colors, isDarkMode, isExpanded, onToggl
             {member.bio}
           </Text>
           <View style={styles.eventBadge}>
-            <MaterialIcons name="bookmark" size={12} color={isDarkMode ? 'rgba(212, 175, 55, 0.6)' : 'rgba(184, 148, 30, 0.6)'} />
+            <MaterialIcons name="workspace-premium" size={12} color={isDarkMode ? 'rgba(90, 159, 238, 0.7)' : 'rgba(0, 163, 224, 0.7)'} />
             <Text style={[styles.eventCount, { color: colors.textLight }]}>
               {member.events.length} {member.events.length === 1 ? 'event' : 'events'}
             </Text>
           </View>
         </View>
 
-        <MaterialIcons 
-          name={isExpanded ? 'expand-less' : 'expand-more'} 
-          size={24} 
-          color={isDarkMode ? 'rgba(212, 175, 55, 0.4)' : 'rgba(184, 148, 30, 0.4)'} 
+        <MaterialIcons
+          name={isExpanded ? 'expand-less' : 'expand-more'}
+          size={24}
+          color={isDarkMode ? 'rgba(90, 159, 238, 0.5)' : 'rgba(0, 163, 224, 0.5)'}
         />
-      </TouchableOpacity>
+        </TouchableOpacity>
+      </Animated.View>
 
-      <Animated.View 
+      <Animated.View
         style={[
-          styles.expandedContent, 
-          { 
+          styles.expandedContent,
+          {
             maxHeight: heightAnim,
             opacity: opacityAnim,
           }
         ]}
       >
         <View style={[styles.expandedInner, {
-          backgroundColor: isDarkMode ? '#0D1116' : '#F8F9FA',
+          backgroundColor: isDarkMode ? '#0F1419' : '#F0F7FF',
           borderWidth: 1,
           borderTopWidth: 0,
-          borderColor: isDarkMode ? 'rgba(212, 175, 55, 0.1)' : 'rgba(212, 175, 55, 0.15)',
+          borderColor: isDarkMode ? 'rgba(90, 159, 238, 0.2)' : 'rgba(0, 163, 224, 0.15)',
         }]}>
           <Text style={[styles.expandedBio, { color: colors.text }]}>{member.bio}</Text>
-          
+
           {member.events.length > 0 && (
             <View style={styles.eventsSection}>
               <View style={styles.eventsSectionHeader}>
-                <MaterialIcons name="workspace-premium" size={14} color={isDarkMode ? '#D4AF37' : '#B8941E'} />
+                <MaterialIcons name="workspace-premium" size={14} color={isDarkMode ? '#5A9FEE' : '#00A3E0'} />
                 <Text style={[styles.eventsTitle, { color: colors.textSecondary }]}>Competing Events</Text>
               </View>
               {member.events.slice(0, 2).map((event) => (
-                <View key={event.id} style={[styles.eventItem, { 
-                  backgroundColor: isDarkMode ? 'rgba(212, 175, 55, 0.06)' : 'rgba(212, 175, 55, 0.08)',
+                <View key={event.id} style={[styles.eventItem, {
+                  backgroundColor: isDarkMode ? 'rgba(90, 159, 238, 0.08)' : 'rgba(0, 163, 224, 0.06)',
                   borderLeftWidth: 2,
-                  borderLeftColor: isDarkMode ? '#D4AF37' : '#B8941E',
+                  borderLeftColor: isDarkMode ? '#5A9FEE' : '#00A3E0',
                 }]}>
                   <Text style={[styles.eventItemText, { color: colors.text }]} numberOfLines={1}>
                     {event.name}
@@ -306,7 +339,7 @@ const MemberCard = React.memo(({ member, colors, isDarkMode, isExpanded, onToggl
                 </View>
               ))}
               {member.events.length > 2 && (
-                <Text style={[styles.moreEvents, { color: isDarkMode ? '#D4AF37' : '#B8941E' }]}>
+                <Text style={[styles.moreEvents, { color: isDarkMode ? '#5A9FEE' : '#00A3E0' }]}>
                   +{member.events.length - 2} more
                 </Text>
               )}
@@ -314,7 +347,7 @@ const MemberCard = React.memo(({ member, colors, isDarkMode, isExpanded, onToggl
           )}
         </View>
       </Animated.View>
-    </View>
+    </Animated.View>
   );
 }, (prevProps, nextProps) => {
   return (
@@ -416,6 +449,11 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: '700',
   },
+  headerSubtitle: {
+    ...TYPOGRAPHY.bodySmall,
+    fontSize: 14,
+    marginTop: 2,
+  },
   searchContainer: {
     paddingHorizontal: SPACING.lg,
     paddingTop: SPACING.md,
@@ -441,6 +479,40 @@ const styles = StyleSheet.create({
   listContent: {
     paddingHorizontal: SPACING.lg,
     paddingBottom: 100,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingHorizontal: SPACING.lg,
+    paddingBottom: 100,
+  },
+  stackCard: {
+    marginBottom: SPACING.md,
+  },
+  stackCardContent: {
+    padding: SPACING.md,
+    borderRadius: BORDER_RADIUS.md,
+  },
+  stackCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.md,
+    marginBottom: SPACING.sm,
+  },
+  stackCardInfo: {
+    flex: 1,
+    gap: 4,
+  },
+  stackCardName: {
+    ...TYPOGRAPHY.bodyMedium,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  stackCardBio: {
+    ...TYPOGRAPHY.bodySmall,
+    fontSize: 14,
+    lineHeight: 20,
   },
   memberCardContainer: {
     marginBottom: SPACING.xs + 2,
@@ -555,5 +627,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginTop: SPACING.sm,
     textAlign: 'center',
+  },
+  memberCardTouchable: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    gap: SPACING.md,
   },
 });

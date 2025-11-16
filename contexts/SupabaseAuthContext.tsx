@@ -11,6 +11,7 @@ interface UserProfile {
   phone: string;
   bio: string;
   memberSince: string;
+  role?: string;
   eventsAttended?: number;
   points?: number;
 }
@@ -20,7 +21,7 @@ interface SupabaseAuthContextType {
   session: Session | null;
   isLoading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (userData: Omit<UserProfile, 'id' | 'memberSince'> & { password: string }) => Promise<void>;
+  signUp: (userData: Omit<UserProfile, 'id' | 'memberSince'> & { password: string; execPasscode?: string }) => Promise<void>;
   signOut: () => Promise<void>;
   updateProfile: (updates: Partial<UserProfile>) => Promise<void>;
 }
@@ -75,6 +76,7 @@ export function SupabaseAuthProvider({ children }: { children: React.ReactNode }
           phone: data.phone,
           bio: data.bio,
           memberSince: data.member_since,
+          role: data.role,
           eventsAttended: data.events_attended,
           points: data.points,
         });
@@ -103,7 +105,7 @@ export function SupabaseAuthProvider({ children }: { children: React.ReactNode }
     }
   };
 
-  const signUp = async (userData: Omit<UserProfile, 'id' | 'memberSince'> & { password: string }) => {
+  const signUp = async (userData: Omit<UserProfile, 'id' | 'memberSince'> & { password: string; execPasscode?: string }) => {
     try {
       console.log('🚀 Starting sign up process...');
       console.log('📧 Email:', userData.email);
@@ -145,6 +147,7 @@ export function SupabaseAuthProvider({ children }: { children: React.ReactNode }
           position: userData.position || '',
           phone: userData.phone || '',
           bio: userData.bio || '',
+          role: userData.role || 'Student',
         })
         .eq('id', authData.user.id);
 
@@ -189,6 +192,7 @@ export function SupabaseAuthProvider({ children }: { children: React.ReactNode }
           position: updates.position,
           phone: updates.phone,
           bio: updates.bio,
+          role: updates.role,
         })
         .eq('id', user.id);
 

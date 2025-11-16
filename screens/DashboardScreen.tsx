@@ -10,6 +10,8 @@ import { useSupabaseAuth } from '../contexts/SupabaseAuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { mockEvents } from '../data/mockData';
 import { SPACING, TYPOGRAPHY, SHADOWS } from '../constants/theme';
+import MerchStoreCard from '../components/MerchStoreCard';
+
 
 const QUOTES = [
   'Connect. Lead. Inspire.',
@@ -533,6 +535,8 @@ export default function DashboardScreen({ navigation }: DashboardScreenProps) {
             isDarkMode={isDarkMode}
           />
 
+
+
           {/* Enhanced Upcoming Event with defined glass */}
           {upcomingEvent && (
             <Animated.View entering={FadeInDown.delay(400).springify()}>
@@ -582,6 +586,13 @@ export default function DashboardScreen({ navigation }: DashboardScreenProps) {
               </TouchableOpacity>
             </Animated.View>
           )}
+
+          <MerchStoreCard
+  onPress={() => navigation.navigate('MerchStore')}
+  index={0}
+/>
+
+          
 
           {/* Enhanced Notifications Strip */}
           <Animated.View entering={FadeInDown.delay(500).springify()}>

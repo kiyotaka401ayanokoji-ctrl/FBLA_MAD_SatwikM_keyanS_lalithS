@@ -23,6 +23,9 @@ import ProfileScreen from './screens/ProfileScreen';
 import EventDetailScreen from './screens/EventDetailScreen';
 import AICoachScreen from './screens/AICoachScreen';
 import MembersHubScreen from './screens/MembersHubScreen';
+import ExecDashboard from './screens/ExecDashboard';
+import ExecutiveHome from './screens/ExecutiveHome';
+import MerchStoreScreen from './screens/MerchStoreScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -132,25 +135,49 @@ function MainStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="Main" component={TabNavigator} />
-      <Stack.Screen 
-        name="EventDetail" 
-        component={EventDetailScreen}
+      <Stack.Screen
+        name="EventDetail"
+        component={EventDetailScreen as any}
         options={{
           presentation: 'card',
           animation: 'slide_from_right',
         }}
       />
-      <Stack.Screen 
-        name="AICoach" 
+      <Stack.Screen
+        name="AICoach"
         component={AICoachScreen}
         options={{
           presentation: 'card',
           animation: 'slide_from_right',
         }}
       />
-      <Stack.Screen 
-        name="MembersHub" 
+      <Stack.Screen
+        name="MembersHub"
         component={MembersHubScreen}
+        options={{
+          presentation: 'card',
+          animation: 'slide_from_right',
+        }}
+      />
+      <Stack.Screen
+        name="MerchStore"
+        component={MerchStoreScreen}
+        options={{
+          presentation: 'card',
+          animation: 'slide_from_right',
+        }}
+      />
+      <Stack.Screen
+        name="ExecDashboard"
+        component={ExecDashboard}
+        options={{
+          presentation: 'card',
+          animation: 'slide_from_right',
+        }}
+      />
+      <Stack.Screen
+        name="ExecutiveHome"
+        component={ExecutiveHome}
         options={{
           presentation: 'card',
           animation: 'slide_from_right',
@@ -183,7 +210,7 @@ function AppContent() {
   return (
     <>
       <NavigationContainer>
-        {user ? <MainStack /> : <AuthStack />}
+        {user ? (user.role === 'Executive' ? <ExecutiveHome navigation={undefined} /> : <MainStack />) : <AuthStack />}
       </NavigationContainer>
       <StatusBar style={isDarkMode ? 'light' : 'dark'} />
     </>
