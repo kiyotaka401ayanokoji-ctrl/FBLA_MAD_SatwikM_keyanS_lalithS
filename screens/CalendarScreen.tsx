@@ -8,6 +8,8 @@ import { mockEvents } from '../data/mockData';
 import { useTheme } from '../contexts/ThemeContext';
 import { SPACING, TYPOGRAPHY, BORDER_RADIUS, SHADOWS } from '../constants/theme';
 import { Event } from '../types';
+import { BlurView } from 'expo-blur';
+
 
 interface CalendarScreenProps {
   navigation: any;
@@ -410,6 +412,7 @@ export default function CalendarScreen({ navigation }: CalendarScreenProps) {
               colors={colors}
               scrollPosition={scrollPosition}
               isTimelineView={isTimelineView}
+              isDarkMode={isDarkMode}
             />
           ))}
         </ScrollView>
@@ -432,9 +435,10 @@ interface TimelineEventCardProps {
   colors: any;
   scrollPosition: number;
   isTimelineView: boolean;
+  isDarkMode: boolean;
 }
 
-function TimelineEventCard({ event, index, onPress, colors, scrollPosition, isTimelineView }: TimelineEventCardProps) {
+function TimelineEventCard({ event, index, onPress, colors, scrollPosition, isTimelineView, isDarkMode }: TimelineEventCardProps) {
   const isLeft = index % 2 === 0;
   const cardPosition = index * 140;
   const slideAnim = useRef(new Animated.Value(isLeft ? -150 : 150)).current;
@@ -501,29 +505,36 @@ function TimelineEventCard({ event, index, onPress, colors, scrollPosition, isTi
         <TouchableOpacity
           activeOpacity={0.8}
           onPress={onPress}
-          style={[
-            styles.timelineCard,
-            { 
-              backgroundColor: colors.surface,
-              borderWidth: 2,
-              borderColor: categoryColor,
-            },
-            SHADOWS.large,
-          ]}
         >
-          {/* Title - Centered */}
-          <Text style={[styles.timelineTitle, { color: colors.text, textAlign: 'center' }]} numberOfLines={2}>
-            {event.title}
-          </Text>
-
-          {/* Arrow Pointer */}
-          <View 
+          <BlurView
+            intensity={isDarkMode ? 45 : 95}
+            tint={isDarkMode ? 'dark' : 'light'}
             style={[
-              styles.timelineArrow, 
-              { backgroundColor: colors.surface, borderColor: categoryColor },
-              isLeft ? styles.timelineArrowLeft : styles.timelineArrowRight,
-            ]} 
-          />
+              styles.timelineCard,
+              { 
+                borderWidth: 1.5,
+                borderColor: isDarkMode ? 'rgba(90, 159, 238, 0.4)' : 'rgba(255, 255, 255, 0.7)',
+              },
+              SHADOWS.large,
+            ]}
+          >
+            {/* Title - Centered */}
+            <Text style={[styles.timelineTitle, { color: colors.text, textAlign: 'center' }]} numberOfLines={2}>
+              {event.title}
+            </Text>
+
+            {/* Arrow Pointer */}
+            <View 
+              style={[
+                styles.timelineArrow, 
+                { 
+                  backgroundColor: isDarkMode ? 'rgba(26, 31, 46, 0.5)' : 'rgba(255, 255, 255, 0.7)',
+                  borderColor: isDarkMode ? 'rgba(90, 159, 238, 0.4)' : 'rgba(255, 255, 255, 0.7)',
+                },
+                isLeft ? styles.timelineArrowLeft : styles.timelineArrowRight,
+              ]} 
+            />
+          </BlurView>
         </TouchableOpacity>
       </Animated.View>
     </View>
@@ -639,6 +650,8 @@ const styles = StyleSheet.create({
     minHeight: 80,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: 'transparent',
+    overflow: 'hidden',
   },
   timelineArrow: {
     position: 'absolute',
@@ -646,8 +659,8 @@ const styles = StyleSheet.create({
     width: 10,
     height: 10,
     transform: [{ rotate: '45deg' }],
-    borderTopWidth: 2,
-    borderRightWidth: 2,
+    borderTopWidth: 1.5,
+    borderRightWidth: 1.5,
   },
   timelineArrowLeft: {
     right: -6,
@@ -723,3 +736,4 @@ const styles = StyleSheet.create({
     left: 40,
   },
 });
+

@@ -4,7 +4,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Linking, TextInpu
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
-import { FadeInDown } from 'react-native-reanimated';
+import * as Reanimated from 'react-native-reanimated';
 import { useTheme } from '../contexts/ThemeContext';
 import { SPACING, TYPOGRAPHY, BORDER_RADIUS, SHADOWS } from '../constants/theme';
 
@@ -134,8 +134,6 @@ const OFFICIAL_RESOURCES: Resource[] = [
     category: 'official',
   },
 ];
-
-
 
 export default function ResourcesScreen() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -318,7 +316,7 @@ export default function ResourcesScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: isDarkMode ? '#0F1419' : '#D4E3F7' }]} edges={['top']}>
-      {/* Floating Background Circles - PASTEL with Dark Mode support */}
+      {/* Floating Background Circles */}
       <Animated.View
         style={[
           styles.floatingCircle,
@@ -446,16 +444,16 @@ export default function ResourcesScreen() {
         </View>
 
         {/* Search Bar */}
-        <Animated.View entering={FadeInDown.delay(100).springify()} style={styles.searchContainer}>
+        <Reanimated.default.View entering={Reanimated.FadeInDown.delay(100).springify()} style={styles.searchContainer}>
           <BlurView 
-            intensity={isDarkMode ? 40 : 95} 
+            intensity={isDarkMode ? 40 : 60} 
             tint={isDarkMode ? 'dark' : 'light'}
             style={[styles.searchBlur, SHADOWS.medium]}
           >
             <View style={[styles.searchInner, { 
-              borderColor: isDarkMode ? 'rgba(90, 159, 238, 0.4)' : 'rgba(255, 255, 255, 0.7)', 
+              borderColor: isDarkMode ? 'rgba(90, 159, 238, 0.4)' : 'rgba(255, 255, 255, 0.8)', 
               borderWidth: 1.5,
-              backgroundColor: isDarkMode ? 'transparent' : 'rgba(255, 255, 255, 0.9)'
+              backgroundColor: isDarkMode ? 'transparent' : 'rgba(255, 255, 255, 0.3)'
             }]}>
               <MaterialIcons name="search" size={22} color={colors.textLight} />
               <TextInput
@@ -472,7 +470,7 @@ export default function ResourcesScreen() {
               )}
             </View>
           </BlurView>
-        </Animated.View>
+        </Reanimated.default.View>
 
         {/* Scrollable Content */}
         <ScrollView 
@@ -481,7 +479,7 @@ export default function ResourcesScreen() {
         >
           {/* Event Rubrics & Guides Section */}
           {filteredRubrics.length > 0 && (
-            <Animated.View entering={FadeInDown.delay(200).springify()}>
+            <Reanimated.default.View entering={Reanimated.FadeInDown.delay(200).springify()}>
               <View style={styles.sectionHeader}>
                 <MaterialIcons name="description" size={24} color={colors.primary} />
                 <Text style={[styles.sectionTitle, { color: colors.text }]}>
@@ -503,12 +501,12 @@ export default function ResourcesScreen() {
                   isOfficial={false}
                 />
               ))}
-            </Animated.View>
+            </Reanimated.default.View>
           )}
 
           {/* Official FBLA Resources Section */}
           {filteredOfficial.length > 0 && (
-            <Animated.View entering={FadeInDown.delay(300).springify()}>
+            <Reanimated.default.View entering={Reanimated.FadeInDown.delay(300).springify()}>
               <View style={[styles.sectionHeader, styles.officialSectionHeader]}>
                 <MaterialIcons name="verified" size={24} color={colors.accent} />
                 <Text style={[styles.sectionTitle, { color: colors.text }]}>
@@ -530,17 +528,17 @@ export default function ResourcesScreen() {
                   isOfficial={true}
                 />
               ))}
-            </Animated.View>
+            </Reanimated.default.View>
           )}
 
           {/* No Results */}
           {filteredRubrics.length === 0 && filteredOfficial.length === 0 && (
-            <Animated.View entering={FadeInDown.delay(200).springify()} style={styles.noResults}>
+            <Reanimated.default.View entering={Reanimated.FadeInDown.delay(200).springify()} style={styles.noResults}>
               <MaterialIcons name="search-off" size={64} color={colors.textLight} />
               <Text style={[styles.noResultsText, { color: colors.textSecondary }]}>
                 No resources found for &quot;{searchQuery}&quot;
               </Text>
-            </Animated.View>
+            </Reanimated.default.View>
           )}
         </ScrollView>
        {/* Floating TTS Button */}
@@ -566,10 +564,10 @@ interface ResourceItemProps {
 
 function ResourceItem({ resource, onPress, index, colors, isDarkMode, isOfficial }: ResourceItemProps) {
   return (
-    <Animated.View entering={FadeInDown.delay(index * 50).springify()}>
+    <Reanimated.default.View entering={Reanimated.FadeInDown.delay(index * 50).springify()}>
       <TouchableOpacity onPress={onPress} activeOpacity={0.85}>
         <BlurView 
-          intensity={isDarkMode ? 40 : 95} 
+          intensity={isDarkMode ? 40 : 60} 
           tint={isDarkMode ? 'dark' : 'light'}
           style={[styles.resourceCard, SHADOWS.medium]}
         >
@@ -577,10 +575,10 @@ function ResourceItem({ resource, onPress, index, colors, isDarkMode, isOfficial
             styles.resourceInner, 
             { 
               borderColor: isOfficial 
-                ? (isDarkMode ? 'rgba(255, 193, 7, 0.5)' : 'rgba(255, 193, 7, 0.4)')
-                : (isDarkMode ? 'rgba(90, 159, 238, 0.4)' : 'rgba(255, 255, 255, 0.7)'), 
+                ? (isDarkMode ? 'rgba(255, 193, 7, 0.5)' : 'rgba(255, 193, 7, 0.6)')
+                : (isDarkMode ? 'rgba(90, 159, 238, 0.4)' : 'rgba(255, 255, 255, 0.8)'), 
               borderWidth: 1.5,
-              backgroundColor: isDarkMode ? 'transparent' : 'rgba(255, 255, 255, 0.9)'
+              backgroundColor: isDarkMode ? 'transparent' : 'rgba(255, 255, 255, 0.25)'
             }
           ]}>
             <View style={[
@@ -610,7 +608,7 @@ function ResourceItem({ resource, onPress, index, colors, isDarkMode, isOfficial
           </View>
         </BlurView>
       </TouchableOpacity>
-    </Animated.View>
+    </Reanimated.default.View>
   );
 }
 
@@ -722,7 +720,7 @@ const styles = StyleSheet.create({
     marginTop: SPACING.md,
     textAlign: 'center',
   },
-  // Floating circles - PASTEL COLORS
+  // Floating circles
   floatingCircle: {
     position: 'absolute',
     borderRadius: 9999,

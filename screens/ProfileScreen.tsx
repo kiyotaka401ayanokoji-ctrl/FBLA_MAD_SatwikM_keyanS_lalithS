@@ -40,97 +40,22 @@ export default function ProfileScreen() {
   useEffect(() => {
     loadTTSPreference();
 
-    // Animate floating circles
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(circle1Anim, {
-          toValue: 1,
-          duration: 13000,
-          useNativeDriver: true,
-        }),
-        Animated.timing(circle1Anim, {
-          toValue: 0,
-          duration: 13000,
-          useNativeDriver: true,
-        }),
-      ])
-    ).start();
+    const animateCircle = (anim: Animated.Value, duration: number) => {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(anim, { toValue: 1, duration, useNativeDriver: true }),
+          Animated.timing(anim, { toValue: 0, duration, useNativeDriver: true }),
+        ])
+      ).start();
+    };
 
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(circle2Anim, {
-          toValue: 1,
-          duration: 16000,
-          useNativeDriver: true,
-        }),
-        Animated.timing(circle2Anim, {
-          toValue: 0,
-          duration: 16000,
-          useNativeDriver: true,
-        }),
-      ])
-    ).start();
-
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(circle3Anim, {
-          toValue: 1,
-          duration: 19000,
-          useNativeDriver: true,
-        }),
-        Animated.timing(circle3Anim, {
-          toValue: 0,
-          duration: 19000,
-          useNativeDriver: true,
-        }),
-      ])
-    ).start();
-
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(circle4Anim, {
-          toValue: 1,
-          duration: 21000,
-          useNativeDriver: true,
-        }),
-        Animated.timing(circle4Anim, {
-          toValue: 0,
-          duration: 21000,
-          useNativeDriver: true,
-        }),
-      ])
-    ).start();
-
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(circle5Anim, {
-          toValue: 1,
-          duration: 16000,
-          useNativeDriver: true,
-        }),
-        Animated.timing(circle5Anim, {
-          toValue: 0,
-          duration: 16000,
-          useNativeDriver: true,
-        }),
-      ])
-    ).start();
-
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(circle6Anim, {
-          toValue: 1,
-          duration: 18000,
-          useNativeDriver: true,
-        }),
-        Animated.timing(circle6Anim, {
-          toValue: 0,
-          duration: 18000,
-          useNativeDriver: true,
-        }),
-      ])
-    ).start();
-  }, [circle1Anim, circle2Anim, circle3Anim, circle4Anim, circle5Anim, circle6Anim]);
+    animateCircle(circle1Anim, 13000);
+    animateCircle(circle2Anim, 16000);
+    animateCircle(circle3Anim, 19000);
+    animateCircle(circle4Anim, 21000);
+    animateCircle(circle5Anim, 16000);
+    animateCircle(circle6Anim, 18000);
+  }, []);
 
   const loadTTSPreference = async () => {
     try {
@@ -196,17 +121,13 @@ export default function ProfileScreen() {
               Alert.alert('Permission Denied', 'Camera permission is required to take photos.');
               return;
             }
-
             const result = await ImagePicker.launchCameraAsync({
               mediaTypes: ImagePicker.MediaTypeOptions.Images,
               allowsEditing: true,
               aspect: [1, 1],
               quality: 0.8,
             });
-
-            if (!result.canceled) {
-              setProfileImage(result.assets[0].uri);
-            }
+            if (!result.canceled) setProfileImage(result.assets[0].uri);
           },
         },
         {
@@ -217,38 +138,21 @@ export default function ProfileScreen() {
               Alert.alert('Permission Denied', 'Photo library permission is required.');
               return;
             }
-
             const result = await ImagePicker.launchImageLibraryAsync({
               mediaTypes: ImagePicker.MediaTypeOptions.Images,
               allowsEditing: true,
               aspect: [1, 1],
               quality: 0.8,
             });
-
-            if (!result.canceled) {
-              setProfileImage(result.assets[0].uri);
-            }
+            if (!result.canceled) setProfileImage(result.assets[0].uri);
           },
         },
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
+        { text: 'Cancel', style: 'cancel' },
       ]
     );
   };
 
-  function InfoField({ 
-    icon, 
-    label, 
-    value, 
-    editable = false,
-    multiline = false,
-    colors,
-    isEditing,
-    profile,
-    setProfile,
-  }: any) {
+  function InfoField({ icon, label, value, editable = false, multiline = false, colors, isEditing, profile, setProfile }: any) {
     return (
       <View style={styles.infoField}>
         <View style={styles.fieldHeader}>
@@ -258,9 +162,9 @@ export default function ProfileScreen() {
         {isEditing && editable ? (
           <TextInput
             style={[
-              styles.fieldInput, 
-              { color: colors.text, backgroundColor: colors.background, borderColor: colors.border },
-              multiline && styles.fieldInputMultiline
+              styles.fieldInput,
+              { color: colors.text, backgroundColor: 'transparent', borderColor: colors.border },
+              multiline && styles.fieldInputMultiline,
             ]}
             value={value}
             onChangeText={(text) => setProfile({ ...profile, [label.toLowerCase()]: text })}
@@ -273,65 +177,18 @@ export default function ProfileScreen() {
     );
   }
 
-  const circle1TranslateY = circle1Anim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [-50, 100],
-  });
-
-  const circle1TranslateX = circle1Anim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [15, 55],
-  });
-
-  const circle2TranslateY = circle2Anim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [70, -30],
-  });
-
-  const circle2TranslateX = circle2Anim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [25, -45],
-  });
-
-  const circle3TranslateY = circle3Anim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [-35, 85],
-  });
-
-  const circle3TranslateX = circle3Anim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [-5, 35],
-  });
-
-  const circle4TranslateY = circle4Anim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [65, -45],
-  });
-
-  const circle4TranslateX = circle4Anim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [-25, 40],
-  });
-
-  const circle5TranslateY = circle5Anim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [-55, 75],
-  });
-
-  const circle5TranslateX = circle5Anim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [40, -30],
-  });
-
-  const circle6TranslateY = circle6Anim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [50, -20],
-  });
-
-  const circle6TranslateX = circle6Anim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [-35, 45],
-  });
+  const circle1TranslateY = circle1Anim.interpolate({ inputRange: [0, 1], outputRange: [-50, 100] });
+  const circle1TranslateX = circle1Anim.interpolate({ inputRange: [0, 1], outputRange: [15, 55] });
+  const circle2TranslateY = circle2Anim.interpolate({ inputRange: [0, 1], outputRange: [70, -30] });
+  const circle2TranslateX = circle2Anim.interpolate({ inputRange: [0, 1], outputRange: [25, -45] });
+  const circle3TranslateY = circle3Anim.interpolate({ inputRange: [0, 1], outputRange: [-35, 85] });
+  const circle3TranslateX = circle3Anim.interpolate({ inputRange: [0, 1], outputRange: [-5, 35] });
+  const circle4TranslateY = circle4Anim.interpolate({ inputRange: [0, 1], outputRange: [65, -45] });
+  const circle4TranslateX = circle4Anim.interpolate({ inputRange: [0, 1], outputRange: [-25, 40] });
+  const circle5TranslateY = circle5Anim.interpolate({ inputRange: [0, 1], outputRange: [-55, 75] });
+  const circle5TranslateX = circle5Anim.interpolate({ inputRange: [0, 1], outputRange: [40, -30] });
+  const circle6TranslateY = circle6Anim.interpolate({ inputRange: [0, 1], outputRange: [50, -20] });
+  const circle6TranslateX = circle6Anim.interpolate({ inputRange: [0, 1], outputRange: [-35, 45] });
 
   const ttsContent = `
     Profile Screen.
@@ -354,10 +211,7 @@ export default function ProfileScreen() {
           styles.circle1,
           {
             backgroundColor: isDarkMode ? 'rgba(139, 92, 246, 0.16)' : 'rgba(221, 214, 254, 0.4)',
-            transform: [
-              { translateY: circle1TranslateY },
-              { translateX: circle1TranslateX },
-            ],
+            transform: [{ translateY: circle1TranslateY }, { translateX: circle1TranslateX }],
           },
         ]}
       />
@@ -367,10 +221,7 @@ export default function ProfileScreen() {
           styles.circle2,
           {
             backgroundColor: isDarkMode ? 'rgba(59, 130, 246, 0.16)' : 'rgba(219, 234, 254, 0.4)',
-            transform: [
-              { translateY: circle2TranslateY },
-              { translateX: circle2TranslateX },
-            ],
+            transform: [{ translateY: circle2TranslateY }, { translateX: circle2TranslateX }],
           },
         ]}
       />
@@ -380,10 +231,7 @@ export default function ProfileScreen() {
           styles.circle3,
           {
             backgroundColor: isDarkMode ? 'rgba(34, 197, 94, 0.16)' : 'rgba(220, 252, 231, 0.4)',
-            transform: [
-              { translateY: circle3TranslateY },
-              { translateX: circle3TranslateX },
-            ],
+            transform: [{ translateY: circle3TranslateY }, { translateX: circle3TranslateX }],
           },
         ]}
       />
@@ -393,10 +241,7 @@ export default function ProfileScreen() {
           styles.circle4,
           {
             backgroundColor: isDarkMode ? 'rgba(236, 72, 153, 0.16)' : 'rgba(252, 231, 243, 0.45)',
-            transform: [
-              { translateY: circle4TranslateY },
-              { translateX: circle4TranslateX },
-            ],
+            transform: [{ translateY: circle4TranslateY }, { translateX: circle4TranslateX }],
           },
         ]}
       />
@@ -406,10 +251,7 @@ export default function ProfileScreen() {
           styles.circle5,
           {
             backgroundColor: isDarkMode ? 'rgba(251, 146, 60, 0.16)' : 'rgba(254, 243, 199, 0.4)',
-            transform: [
-              { translateY: circle5TranslateY },
-              { translateX: circle5TranslateX },
-            ],
+            transform: [{ translateY: circle5TranslateY }, { translateX: circle5TranslateX }],
           },
         ]}
       />
@@ -419,10 +261,7 @@ export default function ProfileScreen() {
           styles.circle6,
           {
             backgroundColor: isDarkMode ? 'rgba(244, 63, 94, 0.16)' : 'rgba(254, 226, 226, 0.4)',
-            transform: [
-              { translateY: circle6TranslateY },
-              { translateX: circle6TranslateX },
-            ],
+            transform: [{ translateY: circle6TranslateY }, { translateX: circle6TranslateX }],
           },
         ]}
       />
@@ -473,172 +312,169 @@ export default function ProfileScreen() {
           <Text style={[styles.headerTitle, { color: colors.text }]}>Profile</Text>
           <TouchableOpacity
             style={[styles.editButton, { backgroundColor: colors.primary }]}
-            onPress={() => isEditing ? handleSave() : setIsEditing(true)}
+            onPress={() => (isEditing ? handleSave() : setIsEditing(true))}
           >
-            <MaterialIcons
-              name={isEditing ? 'check' : 'edit'}
-              size={24}
-              color="#FFFFFF"
-            />
+            <MaterialIcons name={isEditing ? 'check' : 'edit'} size={24} color="#FFFFFF" />
           </TouchableOpacity>
         </View>
 
-      <ScrollView 
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.content}
-      >
-        <Animated.View entering={FadeIn.duration(600)}>
-          <BlurView 
-            intensity={isDarkMode ? 45 : 95} 
-            tint={isDarkMode ? 'dark' : 'light'}
-            style={[styles.profileHeader, SHADOWS.medium]}
-          >
-            <View style={[styles.profileInner, { 
-              borderColor: isDarkMode ? 'rgba(90, 159, 238, 0.4)' : 'rgba(255, 255, 255, 0.7)', 
-              borderWidth: 1.5,
-              backgroundColor: isDarkMode ? 'transparent' : 'rgba(255, 255, 255, 0.9)'
-            }]}>
-              <View style={styles.avatarContainer}>
-                {profileImage ? (
-                  <Image source={{ uri: profileImage }} style={styles.profileImage} />
-                ) : (
-                  <MaterialIcons name="account-circle" size={80} color={colors.primary} />
-                )}
-                {isEditing && (
-                  <TouchableOpacity 
-                    style={[styles.avatarEditButton, { backgroundColor: colors.primary }]}
-                    onPress={pickImage}
-                  >
-                    <MaterialIcons name="camera-alt" size={20} color="#FFFFFF" />
-                  </TouchableOpacity>
-                )}
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
+          {/* Profile Header */}
+          <Animated.View entering={FadeIn.duration(600)}>
+            <BlurView intensity={isDarkMode ? 45 : 95} tint={isDarkMode ? 'dark' : 'light'} style={[styles.profileHeader, SHADOWS.large]}>
+              <View
+                style={[
+                  styles.profileInner,
+                  styles.glassOverlay,
+                  {
+                    borderColor: isDarkMode ? 'rgba(90, 159, 238, 0.4)' : 'rgba(255, 255, 255, 0.7)',
+                    backgroundColor: isDarkMode ? 'rgba(17, 24, 39, 0.35)' : 'rgba(255, 255, 255, 0.35)',
+                  },
+                ]}
+              >
+                <View style={styles.avatarContainer}>
+                  {profileImage ? (
+                    <Image source={{ uri: profileImage }} style={styles.profileImage} />
+                  ) : (
+                    <MaterialIcons name="account-circle" size={80} color={colors.primary} />
+                  )}
+                  {isEditing && (
+                    <TouchableOpacity style={[styles.avatarEditButton, { backgroundColor: colors.primary }]} onPress={pickImage}>
+                      <MaterialIcons name="camera-alt" size={20} color="#FFFFFF" />
+                    </TouchableOpacity>
+                  )}
+                </View>
+                <Text style={[styles.profileName, { color: colors.text }]}>{profile.name}</Text>
+                <Text style={[styles.profilePosition, { color: colors.textSecondary }]}>{profile.position}</Text>
+                <View style={[styles.chapterBadge, { backgroundColor: colors.primary + '20' }]}>
+                  <MaterialIcons name="school" size={16} color={colors.primary} />
+                  <Text style={[styles.chapterText, { color: colors.primary }]}>{profile.chapter}</Text>
+                </View>
               </View>
-              <Text style={[styles.profileName, { color: colors.text }]}>{profile.name}</Text>
-              <Text style={[styles.profilePosition, { color: colors.textSecondary }]}>{profile.position}</Text>
-              <View style={[styles.chapterBadge, { backgroundColor: colors.primary + '20' }]}>
-                <MaterialIcons name="school" size={16} color={colors.primary} />
-                <Text style={[styles.chapterText, { color: colors.primary }]}>{profile.chapter}</Text>
+            </BlurView>
+          </Animated.View>
+
+          {/* Stats Card */}
+          <Animated.View entering={FadeInDown.delay(200).springify()}>
+            <BlurView intensity={isDarkMode ? 45 : 95} tint={isDarkMode ? 'dark' : 'light'} style={[styles.statsCard, SHADOWS.medium]}>
+              <View
+                style={[
+                  styles.statsInner,
+                  styles.glassOverlay,
+                  {
+                    borderColor: isDarkMode ? 'rgba(90, 159, 238, 0.4)' : 'rgba(255, 255, 255, 0.7)',
+                    backgroundColor: isDarkMode ? 'rgba(17, 24, 39, 0.35)' : 'rgba(255, 255, 255, 0.35)',
+                  },
+                ]}
+              >
+                <View style={styles.statItem}>
+                  <Text style={[styles.statValue, { color: colors.primary }]}>{user?.eventsAttended || 0}</Text>
+                  <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Events Attended</Text>
+                </View>
+                <View style={[styles.statDivider, { backgroundColor: colors.divider }]} />
+                <View style={styles.statItem}>
+                  <Text style={[styles.statValue, { color: colors.primary }]}>
+                    {profile.memberSince
+                      ? Math.floor((Date.now() - new Date(profile.memberSince).getTime()) / (1000 * 60 * 60 * 24))
+                      : 0}
+                  </Text>
+                  <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Days as Member</Text>
+                </View>
               </View>
-            </View>
-          </BlurView>
-        </Animated.View>
+            </BlurView>
+          </Animated.View>
 
-        <Animated.View entering={FadeInDown.delay(200).springify()}>
-          <BlurView 
-            intensity={isDarkMode ? 45 : 95} 
-            tint={isDarkMode ? 'dark' : 'light'}
-            style={[styles.statsCard, SHADOWS.medium]}
-          >
-            <View style={[styles.statsInner, { 
-              borderColor: isDarkMode ? 'rgba(90, 159, 238, 0.4)' : 'rgba(255, 255, 255, 0.7)', 
-              borderWidth: 1.5,
-              backgroundColor: isDarkMode ? 'transparent' : 'rgba(255, 255, 255, 0.9)'
-            }]}>
-              <View style={styles.statItem}>
-                <Text style={[styles.statValue, { color: colors.primary }]}>
-                  {user?.eventsAttended || 0}
-                </Text>
-                <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Events Attended</Text>
+          {/* Info Card */}
+          <Animated.View entering={FadeInDown.delay(300).springify()}>
+            <BlurView intensity={isDarkMode ? 45 : 95} tint={isDarkMode ? 'dark' : 'light'} style={[styles.infoCard, SHADOWS.medium]}>
+              <View
+                style={[
+                  styles.infoInner,
+                  styles.glassOverlay,
+                  {
+                    borderColor: isDarkMode ? 'rgba(90, 159, 238, 0.4)' : 'rgba(255, 255, 255, 0.7)',
+                    backgroundColor: isDarkMode ? 'rgba(17, 24, 39, 0.35)' : 'rgba(255, 255, 255, 0.35)',
+                  },
+                ]}
+              >
+                <Text style={[styles.sectionTitle, { color: colors.text }]}>Personal Information</Text>
+                <InfoField icon="email" label="Email" value={profile.email} editable colors={colors} isEditing={isEditing} profile={profile} setProfile={setProfile} />
+                <InfoField icon="phone" label="Phone" value={profile.phone} editable colors={colors} isEditing={isEditing} profile={profile} setProfile={setProfile} />
+                <InfoField icon="calendar-today" label="Member Since" value={profile.memberSince} colors={colors} isEditing={false} profile={profile} setProfile={setProfile} />
+                <InfoField icon="info" label="Bio" value={profile.bio} editable multiline colors={colors} isEditing={isEditing} profile={profile} setProfile={setProfile} />
               </View>
-              <View style={[styles.statDivider, { backgroundColor: colors.divider }]} />
-              <View style={styles.statItem}>
-                <Text style={[styles.statValue, { color: colors.primary }]}>
-                  {profile.memberSince ? Math.floor((Date.now() - new Date(profile.memberSince).getTime()) / (1000 * 60 * 60 * 24)) : 0}
-                </Text>
-                <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Days as Member</Text>
+            </BlurView>
+          </Animated.View>
+
+          {/* Settings Card */}
+          <Animated.View entering={FadeInDown.delay(400).springify()}>
+            <BlurView intensity={isDarkMode ? 45 : 95} tint={isDarkMode ? 'dark' : 'light'} style={[styles.settingsCard, SHADOWS.medium]}>
+              <View
+                style={[
+                  styles.settingsInner,
+                  styles.glassOverlay,
+                  {
+                    borderColor: isDarkMode ? 'rgba(90, 159, 238, 0.4)' : 'rgba(255, 255, 255, 0.7)',
+                    backgroundColor: isDarkMode ? 'rgba(17, 24, 39, 0.35)' : 'rgba(255, 255, 255, 0.35)',
+                  },
+                ]}
+              >
+                <Text style={[styles.sectionTitle, { color: colors.text }]}>Settings</Text>
+
+                <TouchableOpacity style={[styles.settingItem, { borderBottomColor: colors.divider }]} onPress={toggleTheme}>
+                  <View style={styles.settingLeft}>
+                    <MaterialIcons name={isDarkMode ? 'dark-mode' : 'light-mode'} size={24} color={colors.textSecondary} />
+                    <Text style={[styles.settingText, { color: colors.text }]}>Dark Mode</Text>
+                  </View>
+                  <View style={[styles.toggle, { backgroundColor: isDarkMode ? colors.primary : colors.border }]}>
+                    <View style={[styles.toggleThumb, { transform: [{ translateX: isDarkMode ? 20 : 0 }] }]} />
+                  </View>
+                </TouchableOpacity>
+
+                <TouchableOpacity style={[styles.settingItem, { borderBottomColor: colors.divider }]} onPress={toggleTTS}>
+                  <View style={styles.settingLeft}>
+                    <MaterialIcons name="record-voice-over" size={24} color={colors.textSecondary} />
+                    <Text style={[styles.settingText, { color: colors.text }]}>Text-to-Speech</Text>
+                  </View>
+                  <View style={[styles.toggle, { backgroundColor: ttsEnabled ? colors.primary : colors.border }]}>
+                    <View style={[styles.toggleThumb, { transform: [{ translateX: ttsEnabled ? 20 : 0 }] }]} />
+                  </View>
+                </TouchableOpacity>
+
+                <TouchableOpacity style={[styles.settingItem, { borderBottomColor: colors.divider }]}>
+                  <View style={styles.settingLeft}>
+                    <MaterialIcons name="notifications" size={24} color={colors.textSecondary} />
+                    <Text style={[styles.settingText, { color: colors.text }]}>Notifications</Text>
+                  </View>
+                  <MaterialIcons name="chevron-right" size={24} color={colors.textLight} />
+                </TouchableOpacity>
+
+                <TouchableOpacity style={[styles.settingItem, { borderBottomColor: colors.divider }]}>
+                  <View style={styles.settingLeft}>
+                    <MaterialIcons name="lock" size={24} color={colors.textSecondary} />
+                    <Text style={[styles.settingText, { color: colors.text }]}>Privacy</Text>
+                  </View>
+                  <MaterialIcons name="chevron-right" size={24} color={colors.textLight} />
+                </TouchableOpacity>
+
+                <TouchableOpacity style={[styles.settingItem, { borderBottomColor: colors.divider }]}>
+                  <View style={styles.settingLeft}>
+                    <MaterialIcons name="help" size={24} color={colors.textSecondary} />
+                    <Text style={[styles.settingText, { color: colors.text }]}>Help & Support</Text>
+                  </View>
+                  <MaterialIcons name="chevron-right" size={24} color={colors.textLight} />
+                </TouchableOpacity>
+
+                <TouchableOpacity style={[styles.settingItem, styles.logoutItem]} onPress={handleSignOut}>
+                  <View style={styles.settingLeft}>
+                    <MaterialIcons name="logout" size={24} color={colors.error} />
+                    <Text style={[styles.settingText, styles.logoutText, { color: colors.error }]}>Log Out</Text>
+                  </View>
+                </TouchableOpacity>
               </View>
-            </View>
-          </BlurView>
-        </Animated.View>
-
-        <Animated.View entering={FadeInDown.delay(300).springify()}>
-          <BlurView 
-            intensity={isDarkMode ? 45 : 95} 
-            tint={isDarkMode ? 'dark' : 'light'}
-            style={[styles.infoCard, SHADOWS.medium]}
-          >
-            <View style={[styles.infoInner, { 
-              borderColor: isDarkMode ? 'rgba(90, 159, 238, 0.4)' : 'rgba(255, 255, 255, 0.7)', 
-              borderWidth: 1.5,
-              backgroundColor: isDarkMode ? 'transparent' : 'rgba(255, 255, 255, 0.9)'
-            }]}>
-              <Text style={[styles.sectionTitle, { color: colors.text }]}>Personal Information</Text>
-              
-              <InfoField icon="email" label="Email" value={profile.email} editable colors={colors} isEditing={isEditing} profile={profile} setProfile={setProfile} />
-              <InfoField icon="phone" label="Phone" value={profile.phone} editable colors={colors} isEditing={isEditing} profile={profile} setProfile={setProfile} />
-              <InfoField icon="calendar-today" label="Member Since" value={profile.memberSince} colors={colors} isEditing={false} profile={profile} setProfile={setProfile} />
-              <InfoField icon="info" label="Bio" value={profile.bio} editable multiline colors={colors} isEditing={isEditing} profile={profile} setProfile={setProfile} />
-            </View>
-          </BlurView>
-        </Animated.View>
-
-        <Animated.View entering={FadeInDown.delay(400).springify()}>
-          <BlurView 
-            intensity={isDarkMode ? 45 : 95} 
-            tint={isDarkMode ? 'dark' : 'light'}
-            style={[styles.settingsCard, SHADOWS.medium]}
-          >
-            <View style={[styles.settingsInner, { 
-              borderColor: isDarkMode ? 'rgba(90, 159, 238, 0.4)' : 'rgba(255, 255, 255, 0.7)', 
-              borderWidth: 1.5,
-              backgroundColor: isDarkMode ? 'transparent' : 'rgba(255, 255, 255, 0.9)'
-            }]}>
-              <Text style={[styles.sectionTitle, { color: colors.text }]}>Settings</Text>
-              
-              <TouchableOpacity style={[styles.settingItem, { borderBottomColor: colors.divider }]} onPress={toggleTheme}>
-                <View style={styles.settingLeft}>
-                  <MaterialIcons name={isDarkMode ? 'dark-mode' : 'light-mode'} size={24} color={colors.textSecondary} />
-                  <Text style={[styles.settingText, { color: colors.text }]}>Dark Mode</Text>
-                </View>
-                <View style={[styles.toggle, { backgroundColor: isDarkMode ? colors.primary : colors.border }]}>
-                  <View style={[styles.toggleThumb, { transform: [{ translateX: isDarkMode ? 20 : 0 }] }]} />
-                </View>
-              </TouchableOpacity>
-
-              <TouchableOpacity style={[styles.settingItem, { borderBottomColor: colors.divider }]} onPress={toggleTTS}>
-                <View style={styles.settingLeft}>
-                  <MaterialIcons name="record-voice-over" size={24} color={colors.textSecondary} />
-                  <Text style={[styles.settingText, { color: colors.text }]}>Text-to-Speech</Text>
-                </View>
-                <View style={[styles.toggle, { backgroundColor: ttsEnabled ? colors.primary : colors.border }]}>
-                  <View style={[styles.toggleThumb, { transform: [{ translateX: ttsEnabled ? 20 : 0 }] }]} />
-                </View>
-              </TouchableOpacity>
-
-              <TouchableOpacity style={[styles.settingItem, { borderBottomColor: colors.divider }]}>
-                <View style={styles.settingLeft}>
-                  <MaterialIcons name="notifications" size={24} color={colors.textSecondary} />
-                  <Text style={[styles.settingText, { color: colors.text }]}>Notifications</Text>
-                </View>
-                <MaterialIcons name="chevron-right" size={24} color={colors.textLight} />
-              </TouchableOpacity>
-
-              <TouchableOpacity style={[styles.settingItem, { borderBottomColor: colors.divider }]}>
-                <View style={styles.settingLeft}>
-                  <MaterialIcons name="lock" size={24} color={colors.textSecondary} />
-                  <Text style={[styles.settingText, { color: colors.text }]}>Privacy</Text>
-                </View>
-                <MaterialIcons name="chevron-right" size={24} color={colors.textLight} />
-              </TouchableOpacity>
-
-              <TouchableOpacity style={[styles.settingItem, { borderBottomColor: colors.divider }]}>
-                <View style={styles.settingLeft}>
-                  <MaterialIcons name="help" size={24} color={colors.textSecondary} />
-                  <Text style={[styles.settingText, { color: colors.text }]}>Help & Support</Text>
-                </View>
-                <MaterialIcons name="chevron-right" size={24} color={colors.textLight} />
-              </TouchableOpacity>
-
-              <TouchableOpacity style={[styles.settingItem, styles.logoutItem]} onPress={handleSignOut}>
-                <View style={styles.settingLeft}>
-                  <MaterialIcons name="logout" size={24} color={colors.error} />
-                  <Text style={[styles.settingText, styles.logoutText, { color: colors.error }]}>Log Out</Text>
-                </View>
-              </TouchableOpacity>
-            </View>
-          </BlurView>
-        </Animated.View>
-      </ScrollView>
+            </BlurView>
+          </Animated.View>
+        </ScrollView>
 
         <FloatingTTSButton content={ttsContent} />
       </View>
@@ -834,6 +670,11 @@ const styles = StyleSheet.create({
   },
   logoutText: {
     fontWeight: '600',
+  },
+  // Shared glass overlay for all cards
+  glassOverlay: {
+    borderWidth: 1.5,
+    borderRadius: BORDER_RADIUS.lg,
   },
   // Floating circles - PASTEL COLORS
   floatingCircle: {

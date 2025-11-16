@@ -9,6 +9,7 @@ import { NewsItem } from '../types';
 import { useTheme } from '../contexts/ThemeContext';
 import { SPACING, TYPOGRAPHY, BORDER_RADIUS } from '../constants/theme';
 
+
 export default function NewsFeedScreen() {
   const [newsItems, setNewsItems] = useState<NewsItem[]>(mockNews);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
