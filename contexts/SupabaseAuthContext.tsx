@@ -11,9 +11,8 @@ interface UserProfile {
   phone: string;
   bio: string;
   memberSince: string;
-  role?: string;
-  eventsAttended?: number;
-  points?: number;
+  eventsAttended: number;
+  points: number;
 }
 
 interface SupabaseAuthContextType {
@@ -21,7 +20,15 @@ interface SupabaseAuthContextType {
   session: Session | null;
   isLoading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (userData: Omit<UserProfile, 'id' | 'memberSince'> & { password: string; execPasscode?: string }) => Promise<void>;
+  signUp: (userData: {
+    name: string;
+    email: string;
+    password: string;
+    chapter?: string;
+    position?: string;
+    phone?: string;
+    bio?: string;
+  }) => Promise<void>;
   signOut: () => Promise<void>;
   updateProfile: (updates: Partial<UserProfile>) => Promise<void>;
 }
@@ -36,6 +43,7 @@ export function SupabaseAuthProvider({ children }: { children: React.ReactNode }
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
+
       if (session?.user) {
         loadUserProfile(session.user.id);
       } else {
@@ -45,6 +53,7 @@ export function SupabaseAuthProvider({ children }: { children: React.ReactNode }
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
+
       if (session?.user) {
         loadUserProfile(session.user.id);
       } else {
@@ -57,151 +66,104 @@ export function SupabaseAuthProvider({ children }: { children: React.ReactNode }
   }, []);
 
   const loadUserProfile = async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .maybeSingle();
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .maybeSingle();
 
-      if (error) throw error;
-
-      if (data) {
-        setUser({
-          id: data.id,
-          name: data.name,
-          email: data.email,
-          chapter: data.chapter,
-          position: data.position,
-          phone: data.phone,
-          bio: data.bio,
-          memberSince: data.member_since,
-          role: data.role,
-          eventsAttended: data.events_attended,
-          points: data.points,
-        });
-      }
-    } catch (error) {
+    if (error) {
       console.error('Error loading profile:', error);
-    } finally {
-      setIsLoading(false);
+      return;
     }
+
+    if (data) {
+      setUser({
+        id: data.id,
+        name: data.name,
+        email: data.email,
+        chapter: data.chapter,
+        position: data.position,
+        phone: data.phone,
+        bio: data.bio,
+        memberSince: data.member_since,
+        eventsAttended: data.events_attended,
+        points: data.points,
+      });
+    }
+
+    setIsLoading(false);
   };
 
   const signIn = async (email: string, password: string) => {
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
 
-      if (error) throw error;
+    if (error) throw new Error(error.message);
 
-      if (data.user) {
-        await loadUserProfile(data.user.id);
-      }
-    } catch (error: any) {
-      throw new Error(error.message || 'Failed to sign in');
+    if (data.user) {
+      await loadUserProfile(data.user.id);
     }
   };
 
-  const signUp = async (userData: Omit<UserProfile, 'id' | 'memberSince'> & { password: string; execPasscode?: string }) => {
-    try {
-      console.log('🚀 Starting sign up process...');
-      console.log('📧 Email:', userData.email);
-      console.log('👤 Name:', userData.name);
+  const signUp = async (userData: {
+    name: string;
+    email: string;
+    password: string;
+    chapter?: string;
+    position?: string;
+    phone?: string;
+    bio?: string;
+  }) => {
+    console.log("🚀 Signing up user", userData);
 
-      // Step 1: Create auth user
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: userData.email,
-        password: userData.password,
-        options: {
-          data: {
-            name: userData.name,
-          }
+    const { data, error } = await supabase.auth.signUp({
+      email: userData.email,
+      password: userData.password,
+      options: {
+        data: {
+          name: userData.name
         }
-      });
-
-      if (authError) {
-        console.error('❌ Auth error:', authError);
-        throw authError;
       }
+    });
 
-      console.log('✅ Auth user created:', authData.user?.id);
+    if (error) throw new Error(error.message);
+    if (!data.user) throw new Error("User not created.");
 
-      if (!authData.user) {
-        throw new Error('No user returned from sign up');
-      }
+    // Allow trigger time
+    await new Promise(res => setTimeout(res, 400));
 
-      // Step 2: Wait a moment for trigger to fire
-      await new Promise(resolve => setTimeout(resolve, 500));
+    await supabase
+      .from('profiles')
+      .update({
+        name: userData.name,
+        chapter: userData.chapter || "",
+        position: userData.position || "",
+        phone: userData.phone || "",
+        bio: userData.bio || ""
+      })
+      .eq('id', data.user.id);
 
-      // Step 3: Update the profile with full data
-      console.log('📝 Updating profile with full data...');
-      
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({
-          name: userData.name,
-          chapter: userData.chapter || '',
-          position: userData.position || '',
-          phone: userData.phone || '',
-          bio: userData.bio || '',
-          role: userData.role || 'Student',
-        })
-        .eq('id', authData.user.id);
-
-      if (updateError) {
-        console.error('❌ Update error:', updateError);
-        throw updateError;
-      }
-
-      console.log('✅ Profile updated successfully!');
-
-      // Step 4: Load the complete profile
-      await loadUserProfile(authData.user.id);
-      
-      console.log('🎉 Sign up complete!');
-    } catch (error: any) {
-      console.error('💥 Sign up failed:', error);
-      throw new Error(error.message || 'Failed to sign up');
-    }
+    await loadUserProfile(data.user.id);
   };
 
   const signOut = async () => {
-    try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-      setUser(null);
-      setSession(null);
-    } catch (error: any) {
-      console.error('Error signing out:', error);
-      throw new Error(error.message || 'Failed to sign out');
-    }
+    await supabase.auth.signOut();
+    setUser(null);
+    setSession(null);
   };
 
   const updateProfile = async (updates: Partial<UserProfile>) => {
-    try {
-      if (!user) throw new Error('No user logged in');
+    if (!user) return;
 
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          name: updates.name,
-          chapter: updates.chapter,
-          position: updates.position,
-          phone: updates.phone,
-          bio: updates.bio,
-          role: updates.role,
-        })
-        .eq('id', user.id);
+    await supabase
+      .from('profiles')
+      .update(updates)
+      .eq('id', user.id);
 
-      if (error) throw error;
-
-      setUser({ ...user, ...updates });
-    } catch (error: any) {
-      throw new Error(error.message || 'Failed to update profile');
-    }
+    setUser({ ...user, ...updates });
   };
 
   return (
@@ -213,8 +175,8 @@ export function SupabaseAuthProvider({ children }: { children: React.ReactNode }
 
 export function useSupabaseAuth() {
   const context = useContext(SupabaseAuthContext);
-  if (context === undefined) {
-    throw new Error('useSupabaseAuth must be used within a SupabaseAuthProvider');
+  if (!context) {
+    throw new Error("useSupabaseAuth must be used inside SupabaseAuthProvider");
   }
   return context;
 }
