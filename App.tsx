@@ -53,20 +53,23 @@ function TabNavigator() {
           shadowOpacity: isDarkMode ? 0.15 : 0.08,
           shadowRadius: 12,
         },
+        // Glassmorphism blur effect for modern tab bar UI
         tabBarBackground: () => (
           <BlurView
+            // Adaptive blur intensity for theme
             intensity={isDarkMode ? 85 : 95}
             tint={isDarkMode ? 'dark' : 'light'}
             style={{
+              // Full coverage positioning
               position: 'absolute',
-              top: 0,
-              left: 0,
-              bottom: 0,
-              right: 0,
-              backgroundColor: isDarkMode ? 'rgba(26, 31, 46, 0.3)' : 'rgba(255, 255, 255, 0.5)',
+              top: 0, left: 0, bottom: 0, right: 0,
+              // Semi-transparent frosted glass effect
+              backgroundColor: isDarkMode 
+                ? 'rgba(26, 31, 46, 0.3)' 
+                : 'rgba(255, 255, 255, 0.5)',
             }}
           />
-        ),
+         ),
         tabBarLabelStyle: {
           fontSize: 12,
           fontWeight: '600',
